@@ -298,6 +298,18 @@ p {
   padding: clamp(3rem, 5vw, 4.8rem) 0 clamp(2.7rem, 4.2vw, 4rem);
 }
 
+.landing-hero::after {
+  content: "";
+  position: absolute;
+  width: 440px;
+  height: 440px;
+  right: -140px;
+  bottom: -230px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 70%);
+  pointer-events: none;
+}
+
 .landing-hero__layout {
   display: grid;
   grid-template-columns: 1.1fr 0.9fr;
@@ -315,10 +327,15 @@ p {
   color: #fff;
 }
 
+.landing-hero__copy {
+  display: grid;
+  align-content: start;
+}
+
 .landing-hero__copy h1 {
   color: #fff;
   margin-bottom: 0.85rem;
-  max-width: 16ch;
+  max-width: 17ch;
   line-height: 1.08;
 }
 
@@ -363,7 +380,8 @@ p {
 .landing-hero__metric strong {
   display: block;
   color: #fff;
-  font-size: 0.84rem;
+  font-size: 1.03rem;
+  font-weight: 800;
   margin-bottom: 0.2rem;
 }
 
@@ -376,6 +394,7 @@ p {
 .landing-hero__panel {
   display: grid;
   gap: 0.6rem;
+  align-content: start;
 }
 
 .landing-hero__panel-card {
@@ -384,6 +403,10 @@ p {
   backdrop-filter: blur(8px);
   border-radius: 16px;
   padding: 0.95rem;
+}
+
+.landing-hero__panel-card--feature {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.08) 100%);
 }
 
 .landing-hero__panel-card h3 {
@@ -399,9 +422,47 @@ p {
   margin: 0;
 }
 
+.landing-hero__checklist {
+  margin: 0;
+  padding-left: 1rem;
+  display: grid;
+  gap: 0.48rem;
+}
+
+.landing-hero__checklist li {
+  color: rgba(255, 255, 255, 0.94);
+  font-size: 0.82rem;
+  line-height: 1.38;
+}
+
+.landing-hero__mini-stats {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.landing-hero__mini-stats > div {
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.55rem 0.65rem;
+  display: grid;
+  gap: 0.18rem;
+}
+
+.landing-hero__mini-stats strong {
+  color: #fff;
+  font-size: 0.8rem;
+}
+
+.landing-hero__mini-stats span {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.77rem;
+  line-height: 1.36;
+}
+
 .landing-feature-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.95rem;
 }
 
@@ -411,6 +472,9 @@ p {
   border-radius: 18px;
   box-shadow: var(--ui-shadow-sm);
   padding: 1.15rem;
+  display: grid;
+  align-content: start;
+  gap: 0.32rem;
   transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
 }
 
@@ -485,6 +549,81 @@ p {
   line-height: 1.45;
 }
 
+.landing-proof {
+  border: 1px solid var(--ui-border);
+  border-radius: 20px;
+  background: linear-gradient(150deg, #ffffff 0%, #f3f9ff 100%);
+  box-shadow: var(--ui-shadow-md);
+  padding: 1.2rem;
+  display: grid;
+  gap: 0.95rem;
+}
+
+.landing-proof__stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.72rem;
+}
+
+.landing-proof__stat {
+  border: 1px solid rgba(13, 72, 147, 0.15);
+  border-radius: 14px;
+  background: #fff;
+  padding: 0.75rem;
+  display: grid;
+  gap: 0.18rem;
+}
+
+.landing-proof__stat strong {
+  color: var(--color-text);
+  font-size: 1.02rem;
+}
+
+.landing-proof__stat span {
+  color: var(--color-text-secondary);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+}
+
+.landing-testimonial-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.72rem;
+}
+
+.landing-testimonial-card {
+  border: 1px solid rgba(13, 72, 147, 0.15);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.88);
+  padding: 0.86rem;
+  display: grid;
+  gap: 0.62rem;
+}
+
+.landing-testimonial-card p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
+.landing-testimonial-card div {
+  display: grid;
+  gap: 0.1rem;
+}
+
+.landing-testimonial-card strong {
+  color: var(--color-text);
+  font-size: 0.83rem;
+}
+
+.landing-testimonial-card span {
+  color: var(--color-text-muted);
+  font-size: 0.74rem;
+}
+
 .landing-cta {
   border: 1px solid var(--ui-border);
   border-radius: 20px;
@@ -504,6 +643,23 @@ p {
 .landing-cta p {
   margin: 0;
   max-width: 60ch;
+}
+
+.landing-cta__content {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.landing-cta__points {
+  margin: 0;
+  padding-left: 1rem;
+  display: grid;
+  gap: 0.34rem;
+}
+
+.landing-cta__points li {
+  color: var(--color-text-secondary);
+  font-size: 0.84rem;
 }
 
 .landing-cta__actions {
@@ -748,28 +904,61 @@ p {
   margin-bottom: 0;
 }
 
+.doctors-search-panel {
+  display: grid;
+  gap: 0.72rem;
+  background: linear-gradient(145deg, #ffffff 0%, #f8fbff 100%);
+}
+
 .doctors-search-main {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 0.55rem;
+  align-items: stretch;
 }
 
 .doctors-search-input-wrap {
   display: flex;
   align-items: center;
   gap: 0.45rem;
+  min-height: 48px;
+  color: var(--color-text-muted);
   border: 1px solid rgba(13, 72, 147, 0.18);
   border-radius: 999px;
   background: #fff;
   padding: 0 0.82rem;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+}
+
+.doctors-search-input-wrap svg {
+  flex-shrink: 0;
 }
 
 .doctors-search-input-wrap input {
   border: none;
   outline: none;
   width: 100%;
-  padding: 0.68rem 0.05rem;
+  min-width: 0;
+  padding: 0.68rem 0;
   background: transparent;
+  color: var(--color-text);
+  font-size: 0.91rem;
+}
+
+.doctors-search-input-wrap input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.doctors-search-shortcut {
+  flex-shrink: 0;
+  border: 1px solid rgba(13, 72, 147, 0.2);
+  border-radius: 999px;
+  background: var(--ui-card-soft);
+  color: var(--color-text-secondary);
+  font-size: 0.69rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 0.2rem 0.5rem;
 }
 
 .doctors-search-input-wrap:focus-within {
@@ -779,7 +968,21 @@ p {
 
 .doctors-search-actions {
   display: inline-flex;
+  align-items: center;
   gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.doctors-search-actions .btn {
+  min-height: 48px;
+}
+
+.doctors-search-btn {
+  min-width: 122px;
+}
+
+.doctors-clear-btn {
+  white-space: nowrap;
 }
 
 .doctors-search-meta {
@@ -788,6 +991,7 @@ p {
   border-top: 1px dashed var(--ui-border);
   display: flex;
   justify-content: space-between;
+  align-items: center;
   flex-wrap: wrap;
   gap: 0.7rem;
 }
@@ -795,6 +999,7 @@ p {
 .doctors-filter-state {
   margin: 0;
   font-size: 0.84rem;
+  color: var(--color-text-secondary);
 }
 
 .doctors-filter-state strong {
@@ -816,6 +1021,12 @@ p {
   border-radius: 10px;
   padding: 0.48rem 0.6rem;
   background: #fff;
+}
+
+.doctors-sort select:focus {
+  border-color: rgba(0, 102, 204, 0.5);
+  box-shadow: 0 0 0 4px rgba(0, 102, 204, 0.1);
+  outline: none;
 }
 
 .doctors-chip-row {
@@ -2091,9 +2302,15 @@ p {
 .availability-toolbar {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-end;
   gap: 0.6rem;
   flex-wrap: wrap;
+}
+
+.availability-toolbar-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
 }
 
 .availability-kpis {
@@ -2125,6 +2342,7 @@ p {
 .availability-grid {
   display: grid;
   gap: 0.65rem;
+  align-items: start;
 }
 
 .availability-row-card {
@@ -2150,8 +2368,9 @@ p {
 
 .availability-row {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(170px, 220px) minmax(0, 1fr);
   gap: 0.52rem;
+  align-items: end;
 }
 
 .availability-field {
@@ -2167,6 +2386,30 @@ p {
   color: var(--color-text-muted);
 }
 
+.availability-input {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid rgba(13, 72, 147, 0.18);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--color-text);
+  padding: 0.62rem 0.78rem;
+  outline: none;
+  font-size: 0.88rem;
+  font-family: inherit;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+}
+
+.availability-input:focus {
+  border-color: rgba(0, 102, 204, 0.52);
+  box-shadow: 0 0 0 4px rgba(0, 102, 204, 0.1);
+  background: #fff;
+}
+
+.availability-remove-btn {
+  flex-shrink: 0;
+}
+
 .availability-row-note {
   margin: 0;
   color: var(--color-text-secondary);
@@ -2176,6 +2419,10 @@ p {
 .availability-actions {
   display: flex;
   justify-content: flex-end;
+}
+
+.availability-submit-btn {
+  min-width: 190px;
 }
 
 .availability-side {
@@ -2489,7 +2736,7 @@ p {
 }
 
 .doctor-availability-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
 }
 
 .doctor-home-page .dashboard-content,
@@ -2668,12 +2915,23 @@ p {
   }
 
   .landing-hero__metrics {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .landing-feature-grid,
+  .landing-feature-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .landing-flow-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .landing-proof__stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .landing-testimonial-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .landing-cta {
@@ -2722,9 +2980,44 @@ p {
     grid-template-columns: 1fr;
   }
 
+  .landing-hero__metrics,
+  .landing-feature-grid,
+  .landing-flow-grid,
+  .landing-proof__stats,
+  .landing-testimonial-grid {
+    grid-template-columns: 1fr;
+  }
+
   .action-card {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .doctors-search-main {
+    grid-template-columns: 1fr;
+  }
+
+  .doctors-search-meta {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .doctors-search-actions {
+    justify-content: flex-end;
+  }
+
+  .doctors-sort {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .doctors-sort select {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .doctors-search-shortcut {
+    display: none;
   }
 
   .appointment-card-head,
@@ -2769,6 +3062,26 @@ p {
 @media (max-width: 620px) {
   .site-brand__text {
     display: none;
+  }
+
+  .availability-toolbar-actions {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .availability-actions .availability-submit-btn {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .doctors-search-actions {
+    width: 100%;
+    flex-direction: column-reverse;
+  }
+
+  .doctors-search-actions .btn {
+    width: 100%;
+    min-width: 0;
   }
 
   .landing-hero__actions .btn,

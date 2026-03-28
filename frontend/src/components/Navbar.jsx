@@ -54,11 +54,7 @@ function Navbar() {
             <NavLink to="/doctors" onClick={closeMenu} className="site-nav__link">
               Doctors
             </NavLink>
-            {!isAuthenticated && (
-              <NavLink to="/register-patient" onClick={closeMenu} className="site-nav__link">
-                Sign Up
-              </NavLink>
-            )}
+
           </nav>
 
           <div className="site-header__actions">
