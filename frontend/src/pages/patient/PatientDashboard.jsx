@@ -10,8 +10,10 @@ function PatientDashboard() {
   const [stats, setStats] = useState({
     upcoming: 0,
     reports: 0,
-    prescriptions: 0
+    prescriptions: 0,
+    completed: 0
   });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadStats = async () => {
@@ -25,64 +27,256 @@ function PatientDashboard() {
         const upcomingCount = Array.isArray(appointments)
           ? appointments.filter((item) => ["PENDING", "ACCEPTED"].includes(item.status)).length
           : 0;
+        
+        const completedCount = Array.isArray(appointments)
+          ? appointments.filter((item) => item.status === "COMPLETED").length
+          : 0;
 
         setStats({
           upcoming: upcomingCount,
+          completed: completedCount,
           reports: Array.isArray(reports) ? reports.length : 0,
           prescriptions: Array.isArray(prescriptions) ? prescriptions.length : 0
         });
       } catch {
         setStats({
           upcoming: 0,
+          completed: 0,
           reports: 0,
           prescriptions: 0
         });
+      } finally {
+        setLoading(false);
       }
     };
 
     loadStats();
   }, []);
 
+  const quickActions = [
+    {
+      title: "Book Appointment",
+      description: "Schedule a consultation with a specialist",
+      icon: (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+      ),
+      to: "/patient/book-appointment",
+      color: "primary"
+    },
+    {
+      title: "View Appointments",
+      description: "Manage your upcoming and past appointments",
+      icon: (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+      ),
+      to: "/patient/appointments",
+      color: "secondary"
+    },
+    {
+      title: "Medical Reports",
+      description: "Upload and manage your medical documents",
+      icon: (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14,2 14,8 20,8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+          <polyline points="10,9 9,9 8,9"/>
+        </svg>
+      ),
+      to: "/patient/reports",
+      color: "accent"
+    },
+    {
+      title: "Prescriptions",
+      description: "View your prescriptions and treatment plans",
+      icon: (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5Z"/>
+          <path d="M12 5L8 21l4-7 4 7-4-16Z"/>
+        </svg>
+      ),
+      to: "/patient/prescriptions",
+      color: "success"
+    }
+  ];
+
+  const statCards = [
+    {
+      title: "Upcoming Appointments",
+      value: stats.upcoming,
+      description: "Pending or accepted appointments",
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12,6 12,12 16,14"/>
+        </svg>
+      ),
+      color: "primary",
+      trend: stats.upcoming > 0 ? "up" : "neutral"
+    },
+    {
+      title: "Completed Visits",
+      value: stats.completed,
+      description: "Successfully completed consultations",
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+          <polyline points="22,4 12,14.01 9,11.01"/>
+        </svg>
+      ),
+      color: "success",
+      trend: stats.completed > 0 ? "up" : "neutral"
+    },
+    {
+      title: "Medical Reports",
+      value: stats.reports,
+      description: "Uploaded medical documents",
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14,2 14,8 20,8"/>
+        </svg>
+      ),
+      color: "accent",
+      trend: "neutral"
+    },
+    {
+      title: "Prescriptions",
+      value: stats.prescriptions,
+      description: "Active prescriptions",
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5Z"/>
+        </svg>
+      ),
+      color: "secondary",
+      trend: "neutral"
+    }
+  ];
+
+  if (loading) {
+    return (
+      <section className="dashboard-page">
+        <div className="loading-spinner"></div>
+      </section>
+    );
+  }
+
   return (
     <section className="dashboard-page">
       <PageHeader
-        title={`Welcome, ${user?.name || "Patient"}`}
-        subtitle="Manage your healthcare journey from a single dashboard."
+        title={`Welcome back, ${user?.name?.split(' ')[0] || "Patient"}!`}
+        subtitle="Here's an overview of your healthcare journey"
       />
 
-      <div className="stats-grid">
-        <div className="stat-card">
-          <h3>Upcoming Appointments</h3>
-          <p className="stat-value">{stats.upcoming}</p>
-          <span>Pending or accepted appointments</span>
-        </div>
-        <div className="stat-card">
-          <h3>Uploaded Reports</h3>
-          <p className="stat-value">{stats.reports}</p>
-          <span>Medical reports available for doctors</span>
-        </div>
-        <div className="stat-card">
-          <h3>Prescriptions</h3>
-          <p className="stat-value">{stats.prescriptions}</p>
-          <span>Issued by doctors</span>
+      <div className="dashboard-stats">
+        <div className="stats-grid">
+          {statCards.map((stat, index) => (
+            <div key={index} className={`stat-card stat-card--${stat.color}`}>
+              <div className="stat-icon">
+                {stat.icon}
+              </div>
+              <div className="stat-content">
+                <h3>{stat.title}</h3>
+                <div className="stat-value-wrapper">
+                  <span className="stat-value">{stat.value}</span>
+                  {stat.trend === 'up' && (
+                    <svg className="trend-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="23,6 13.5,15.5 8.5,10.5 1,18"/>
+                      <polyline points="17,6 23,6 23,12"/>
+                    </svg>
+                  )}
+                </div>
+                <p className="stat-description">{stat.description}</p>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
-      <div className="panel">
-        <h2>Quick Actions</h2>
-        <div className="quick-actions">
-          <Link to="/patient/book-appointment" className="btn btn-primary">
-            Book Appointment
-          </Link>
-          <Link to="/patient/appointments" className="btn btn-outline">
-            View Appointments
-          </Link>
-          <Link to="/patient/reports" className="btn btn-outline">
-            Manage Reports
-          </Link>
-          <Link to="/patient/prescriptions" className="btn btn-outline">
-            View Prescriptions
-          </Link>
+      <div className="dashboard-content">
+        <div className="quick-actions-section">
+          <h2>Quick Actions</h2>
+          <div className="quick-actions-grid">
+            {quickActions.map((action, index) => (
+              <Link key={index} to={action.to} className={`action-card action-card--${action.color}`}>
+                <div className="action-icon">
+                  {action.icon}
+                </div>
+                <div className="action-content">
+                  <h3>{action.title}</h3>
+                  <p>{action.description}</p>
+                </div>
+                <div className="action-arrow">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="9,18 15,12 9,6"/>
+                    <polyline points="15,12 3,12 3,18"/>
+                  </svg>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        <div className="dashboard-widgets">
+          <div className="widget upcoming-appointments">
+            <h3>Recent Activity</h3>
+            <div className="widget-content">
+              <div className="activity-item">
+                <div className="activity-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12,6 12,12 16,14"/>
+                  </svg>
+                </div>
+                <div className="activity-details">
+                  <p className="activity-title">Appointment with Dr. John Smith</p>
+                  <p className="activity-time">Tomorrow, 10:00 AM</p>
+                </div>
+              </div>
+              <div className="activity-item">
+                <div className="activity-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14,2 14,8 20,8"/>
+                  </svg>
+                </div>
+                <div className="activity-details">
+                  <p className="activity-title">Blood Test Results</p>
+                  <p className="activity-time">2 days ago</p>
+                </div>
+              </div>
+            </div>
+            <Link to="/patient/appointments" className="widget-link">
+              View All Activity →
+            </Link>
+          </div>
+
+          <div className="widget health-tips">
+            <h3>Health Tips</h3>
+            <div className="widget-content">
+              <div className="tip-item">
+                <h4>Stay Hydrated</h4>
+                <p>Drink at least 8 glasses of water daily for optimal health.</p>
+              </div>
+              <div className="tip-item">
+                <h4>Regular Exercise</h4>
+                <p>Aim for 30 minutes of moderate activity most days of the week.</p>
+              </div>
+            </div>
+            <Link to="/health-tips" className="widget-link">
+              More Tips →
+            </Link>
+          </div>
         </div>
       </div>
     </section>

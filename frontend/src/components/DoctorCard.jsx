@@ -12,45 +12,139 @@ const getInitials = (name = "") => {
   return initials || "DR";
 };
 
+const getSpecializationIcon = (specialization) => {
+  const icons = {
+    "Cardiology": "❤️",
+    "Dermatology": "🏥",
+    "Pediatrics": "👶",
+    "Orthopedics": "🦴",
+    "Neurology": "🧠",
+    "General": "⚕️"
+  };
+  return icons[specialization] || "⚕️";
+};
+
 function DoctorCard({ doctor }) {
   const name = doctor.name || "Doctor";
   const specialization = doctor.specialization || "General Medicine";
+  const hospital = doctor.hospital || "City Medical Center";
+  const experience = doctor.experience || 0;
+  const consultationFee = doctor.consultationFee || 0;
+  const isVerified = doctor.verified || false;
+  const availabilityEntries = Array.isArray(doctor.availability)
+    ? doctor.availability.filter((entry) => Array.isArray(entry?.slots) && entry.slots.length > 0)
+    : [];
+
+  const datedEntries = availabilityEntries
+    .map((entry) => {
+      const dateKey = entry?.date ? entry.date.toString().slice(0, 10) : "";
+      return { ...entry, dateKey };
+    })
+    .filter((entry) => /^\d{4}-\d{2}-\d{2}$/.test(entry.dateKey))
+    .sort((a, b) => a.dateKey.localeCompare(b.dateKey));
+
+  const firstAvailableDay = datedEntries[0] || availabilityEntries[0] || null;
+  const previewSlots = firstAvailableDay?.slots?.slice(0, 4) || [];
+  const firstAvailableLabel = firstAvailableDay?.date
+    ? new Date(`${firstAvailableDay.date.toString().slice(0, 10)}T00:00:00`).toLocaleDateString(undefined, {
+        weekday: "short",
+        month: "short",
+        day: "numeric"
+      })
+    : firstAvailableDay?.day || "";
 
   return (
     <article className="doctor-card">
-      <div className="doctor-card-top">
-        <div className="doctor-id">
-          <span className="doctor-avatar">{getInitials(name)}</span>
+      <div className="doctor-card-header">
+        <div className="doctor-avatar-container">
+          <div className="doctor-avatar">
+            {getInitials(name)}
+          </div>
+          {isVerified && (
+            <div className="verification-badge">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+              </svg>
+            </div>
+          )}
+        </div>
+        
+        <div className="doctor-info">
+          <h3 className="doctor-name">{name}</h3>
+          <div className="doctor-specialization">
+            <span className="specialization-icon">{getSpecializationIcon(specialization)}</span>
+            <span>{specialization}</span>
+          </div>
+          {isVerified && (
+            <span className="verified-tag">Verified Doctor</span>
+          )}
+        </div>
+      </div>
+
+      <div className="doctor-details">
+        <div className="detail-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M3 21v-4a4 4 0 0 1 4-4h5"/>
+            <rect x="8" y="3" width="9" height="5" rx="1"/>
+            <path d="M8 8v13"/>
+          </svg>
           <div>
-            <h3>{name}</h3>
-            <p className="doctor-specialization">{specialization}</p>
+            <span className="detail-label">Hospital</span>
+            <span className="detail-value">{hospital}</span>
           </div>
         </div>
 
-        <span className={doctor.verified ? "badge badge-success" : "badge"}>
-          {doctor.verified ? "Verified" : "Pending"}
-        </span>
+        <div className="detail-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12,6 12,12 16,14"/>
+          </svg>
+          <div>
+            <span className="detail-label">Experience</span>
+            <span className="detail-value">{experience} years</span>
+          </div>
+        </div>
+
+        <div className="detail-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <line x1="12" y1="1" x2="12" y2="23"/>
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          </svg>
+          <div>
+            <span className="detail-label">Consultation</span>
+            <span className="detail-value">LKR {consultationFee.toLocaleString()}</span>
+          </div>
+        </div>
       </div>
 
-      <div className="doctor-meta-list">
-        <p className="doctor-meta">
-          <span>Hospital</span>
-          {doctor.hospital || "To be updated"}
-        </p>
-        <p className="doctor-meta">
-          <span>Experience</span>
-          {doctor.experience || 0} years
-        </p>
+      <div className="doctor-availability">
+        <div className="availability-header">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12,6 12,12 16,14"/>
+          </svg>
+          <span>{firstAvailableDay ? `Next Available: ${firstAvailableLabel}` : "Availability Pending"}</span>
+        </div>
+        {previewSlots.length > 0 ? (
+          <div className="time-slots">
+            {previewSlots.map((slot, index) => (
+              <span key={index} className="time-slot">{slot}</span>
+            ))}
+          </div>
+        ) : (
+          <p className="availability-empty">Slots are not published yet.</p>
+        )}
       </div>
 
-      <p className="doctor-fee">
-        LKR {doctor.consultationFee || 0}
-        <span>Consultation Fee</span>
-      </p>
-
-      <Link to={`/doctors/${doctor._id}`} className="btn btn-primary btn-block">
-        View Profile
-      </Link>
+      <div className="doctor-actions">
+        <Link to={`/doctors/${doctor._id}`} className="btn btn-outline">
+          View Profile
+        </Link>
+        <Link to={`/patient/book-appointment?doctorId=${doctor._id}`} className="btn btn-primary">
+          Book Now
+        </Link>
+      </div>
     </article>
   );
 }

@@ -10,7 +10,7 @@ const initialForm = {
   experience: 0,
   hospital: "",
   consultationFee: 0,
-  availabilityText: "Monday: 09:00, 10:00"
+  availabilityText: "2026-04-01: 09:00 AM, 10:00 AM"
 };
 
 const parseAvailabilityText = (text) => {
@@ -21,16 +21,25 @@ const parseAvailabilityText = (text) => {
     .map((line) => line.trim())
     .filter(Boolean)
     .map((line) => {
-      const [dayPart, slotsPart = ""] = line.split(":");
+      const separatorIndex = line.indexOf(":");
+      if (separatorIndex === -1) {
+        return null;
+      }
+
+      const dateOrDayPart = line.slice(0, separatorIndex).trim();
+      const slotsPart = line.slice(separatorIndex + 1).trim();
+      const isDate = /^\d{4}-\d{2}-\d{2}$/.test(dateOrDayPart);
+
       return {
-        day: (dayPart || "").trim(),
+        date: isDate ? dateOrDayPart : "",
+        day: isDate ? "" : dateOrDayPart,
         slots: slotsPart
           .split(",")
           .map((slot) => slot.trim())
           .filter(Boolean)
       };
     })
-    .filter((item) => item.day);
+    .filter((item) => item && (item.date || item.day));
 };
 
 function CreateDoctorProfile() {
@@ -141,7 +150,7 @@ function CreateDoctorProfile() {
           </label>
 
           <label className="span-2">
-            Availability (one line per day, format: Day: slot1, slot2)
+            Availability (one line per entry, format: YYYY-MM-DD: slot1, slot2)
             <textarea
               name="availabilityText"
               value={form.availabilityText}

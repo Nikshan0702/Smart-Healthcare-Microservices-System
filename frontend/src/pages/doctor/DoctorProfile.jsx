@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import EmptyState from "../../components/EmptyState";
 import Loader from "../../components/Loader";
 import PageHeader from "../../components/PageHeader";
@@ -69,11 +69,22 @@ function DoctorProfile() {
     }
   };
 
+  const completion = useMemo(() => {
+    const checks = [
+      Boolean(form.specialization.trim()),
+      Number(form.experience) > 0,
+      Boolean(form.hospital.trim()),
+      Number(form.consultationFee) > 0
+    ];
+
+    return Math.round((checks.filter(Boolean).length / checks.length) * 100);
+  }, [form]);
+
   return (
-    <section className="dashboard-page">
+    <section className="dashboard-page doctor-page doctor-profile-page">
       <PageHeader
         title="My Profile"
-        subtitle="Keep your specialization, hospital, and consultation details updated."
+        subtitle="Keep your professional details complete and accurate for patients."
       />
 
       {loading && <Loader label="Loading profile..." />}
@@ -86,54 +97,119 @@ function DoctorProfile() {
       )}
 
       {!loading && profileExists && (
-        <form className="form-card" onSubmit={handleSubmit}>
-          <div className="form-grid two-col">
-            <label>
-              Specialization
-              <input
-                type="text"
-                name="specialization"
-                value={form.specialization}
-                onChange={handleChange}
-                required
-              />
-            </label>
+        <div className="profile-layout">
+          <form className="form-card profile-form-card doctor-profile-form" onSubmit={handleSubmit}>
+            <div className="profile-form-head">
+              <h2>Professional Information</h2>
+              <p>These details are shown when patients view your profile and book consultations.</p>
+            </div>
 
-            <label>
-              Experience (Years)
-              <input
-                type="number"
-                name="experience"
-                value={form.experience}
-                onChange={handleChange}
-                min="0"
-              />
-            </label>
+            <div className="form-grid two-col doctor-profile-grid">
+              <label className="required">
+                Specialization
+                <input
+                  type="text"
+                  name="specialization"
+                  value={form.specialization}
+                  onChange={handleChange}
+                  placeholder="Cardiology"
+                  required
+                />
+              </label>
 
-            <label>
-              Hospital
-              <input type="text" name="hospital" value={form.hospital} onChange={handleChange} />
-            </label>
+              <label className="required">
+                Experience (Years)
+                <input
+                  type="number"
+                  name="experience"
+                  value={form.experience}
+                  onChange={handleChange}
+                  min="0"
+                  required
+                />
+              </label>
 
-            <label>
-              Consultation Fee (LKR)
-              <input
-                type="number"
-                name="consultationFee"
-                value={form.consultationFee}
-                onChange={handleChange}
-                min="0"
-              />
-            </label>
-          </div>
+              <label className="required">
+                Hospital
+                <input
+                  type="text"
+                  name="hospital"
+                  value={form.hospital}
+                  onChange={handleChange}
+                  placeholder="General Hospital"
+                  required
+                />
+              </label>
 
-          {error && <p className="form-error">{error}</p>}
-          {success && <p className="form-success">{success}</p>}
+              <label className="required">
+                Consultation Fee (LKR)
+                <input
+                  type="number"
+                  name="consultationFee"
+                  value={form.consultationFee}
+                  onChange={handleChange}
+                  min="0"
+                  required
+                />
+              </label>
+            </div>
 
-          <button type="submit" className="btn btn-primary" disabled={saving}>
-            {saving ? "Saving..." : "Save Profile"}
-          </button>
-        </form>
+            {error && <p className="form-error">{error}</p>}
+            {success && <p className="form-success">{success}</p>}
+
+            <div className="profile-form-footer">
+              <button type="submit" className="btn btn-primary" disabled={saving}>
+                {saving ? "Saving..." : "Save Profile"}
+              </button>
+            </div>
+          </form>
+
+          <aside className="profile-side">
+            <div className="panel profile-progress-card">
+              <h3>Profile Completion</h3>
+              <p>A complete profile helps patients trust your consultation details before booking.</p>
+              <div className="profile-progress-track" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={completion}>
+                <div className="profile-progress-fill" style={{ width: `${completion}%` }} />
+              </div>
+              <p className="doctor-profile-progress-text">{completion}% completed</p>
+            </div>
+
+            <div className="panel">
+              <h3>Quality Checklist</h3>
+              <ul className="profile-tip-list">
+                <li>Use a clear specialization label patients can easily understand.</li>
+                <li>Keep hospital details current if you practice in multiple locations.</li>
+                <li>Review consultation fee periodically to reflect current rates.</li>
+              </ul>
+            </div>
+
+            <div className="panel doctor-profile-preview">
+              <h3>Current Preview</h3>
+              <div className="doctor-summary-list">
+                <div className="doctor-summary-item">
+                  <span>Specialization</span>
+                  <strong>{form.specialization || "Not set"}</strong>
+                </div>
+                <div className="doctor-summary-item">
+                  <span>Experience</span>
+                  <strong>{Number(form.experience) || 0} years</strong>
+                </div>
+                <div className="doctor-summary-item">
+                  <span>Hospital</span>
+                  <strong>{form.hospital || "Not set"}</strong>
+                </div>
+                <div className="doctor-summary-item">
+                  <span>Consultation Fee</span>
+                  <strong>
+                    {Number(form.consultationFee) > 0
+                      ? `LKR ${Number(form.consultationFee).toLocaleString()}`
+                      : "Not set"}
+                  </strong>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
       )}
     </section>
   );

@@ -3,25 +3,31 @@ import { useAuth } from "../context/AuthContext";
 
 const linksByRole = {
   PATIENT: [
-    { to: "/patient/dashboard", label: "Dashboard" },
-    { to: "/patient/book-appointment", label: "Book Appointment" },
-    { to: "/patient/appointments", label: "My Appointments" },
-    { to: "/patient/profile", label: "My Profile" },
-    { to: "/patient/reports", label: "My Reports" },
-    { to: "/patient/prescriptions", label: "Prescriptions" }
+    { to: "/patient/dashboard", label: "Dashboard", short: "DB" },
+    { to: "/patient/book-appointment", label: "Book Appointment", short: "BK" },
+    { to: "/patient/appointments", label: "My Appointments", short: "AP" },
+    { to: "/patient/profile", label: "My Profile", short: "PF" },
+    { to: "/patient/reports", label: "My Reports", short: "RP" },
+    { to: "/patient/prescriptions", label: "Prescriptions", short: "RX" }
   ],
   DOCTOR: [
-    { to: "/doctor/dashboard", label: "Dashboard" },
-    { to: "/doctor/appointments", label: "Appointments" },
-    { to: "/doctor/profile", label: "My Profile" },
-    { to: "/doctor/availability", label: "Availability" },
-    { to: "/doctor/issue-prescription", label: "Issue Prescription" }
+    { to: "/doctor/dashboard", label: "Dashboard", short: "DB" },
+    { to: "/doctor/appointments", label: "Appointments", short: "AP" },
+    { to: "/doctor/profile", label: "My Profile", short: "PF" },
+    { to: "/doctor/availability", label: "Availability", short: "AV" },
+    { to: "/doctor/issue-prescription", label: "Issue Prescription", short: "RX" }
   ],
   ADMIN: [
-    { to: "/admin/dashboard", label: "Dashboard" },
-    { to: "/admin/create-doctor-account", label: "Create Doctor Account" },
-    { to: "/admin/create-doctor-profile", label: "Create Doctor Profile" }
+    { to: "/admin/dashboard", label: "Dashboard", short: "DB" },
+    { to: "/admin/create-doctor-account", label: "Create Doctor Account", short: "DA" },
+    { to: "/admin/create-doctor-profile", label: "Create Doctor Profile", short: "DP" }
   ]
+};
+
+const roleHintByRole = {
+  PATIENT: "Track appointments, reports, and your health records.",
+  DOCTOR: "Manage availability, appointments, and prescriptions.",
+  ADMIN: "Control doctor accounts and platform configuration."
 };
 
 function DashboardSidebar() {
@@ -29,6 +35,7 @@ function DashboardSidebar() {
   const { user, logout } = useAuth();
 
   const links = linksByRole[user?.role] || [];
+  const role = user?.role || "USER";
 
   const handleLogout = () => {
     logout();
@@ -36,23 +43,26 @@ function DashboardSidebar() {
   };
 
   return (
-    <aside className="dashboard-sidebar">
+    <aside className={`dashboard-sidebar dashboard-sidebar--${role.toLowerCase()}`}>
       <div className="sidebar-top">
         <div className="sidebar-brand-wrap">
           <span className="sidebar-brand-mark">SH</span>
           <div>
             <div className="sidebar-brand">Smart Healthcare</div>
-            <p className="sidebar-role">{user?.role?.toLowerCase() || "user"}</p>
+            <p className="sidebar-role">{role.toLowerCase()}</p>
           </div>
         </div>
 
         {user?.name && <p className="sidebar-user">Signed in as {user.name}</p>}
+        <p className="sidebar-role-hint">{roleHintByRole[role] || "Manage your dashboard workspace."}</p>
       </div>
 
-      <nav className="sidebar-nav">
+      <nav className="sidebar-nav" aria-label={`${role.toLowerCase()} navigation`}>
+        <p className="sidebar-nav-title">Navigation</p>
         {links.map((link) => (
           <NavLink key={link.to} to={link.to}>
-            {link.label}
+            <span className="sidebar-link-mark">{link.short}</span>
+            <span>{link.label}</span>
           </NavLink>
         ))}
       </nav>

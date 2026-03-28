@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import EmptyState from "../components/EmptyState";
 import Loader from "../components/Loader";
@@ -29,6 +29,45 @@ function DoctorDetails() {
 
     loadDoctor();
   }, [id]);
+
+  const availabilityByDay = useMemo(() => {
+    if (!doctor || !Array.isArray(doctor.availability)) return [];
+
+    const mapped = doctor.availability.map((entry, index) => {
+      const normalizedDate = entry?.date ? entry.date.toString().trim().slice(0, 10) : "";
+      const formattedDate = normalizedDate
+        ? new Date(`${normalizedDate}T00:00:00`).toLocaleDateString(undefined, {
+            weekday: "short",
+            year: "numeric",
+            month: "short",
+            day: "numeric"
+          })
+        : "";
+      const day = (entry?.day || `Day ${index + 1}`).toString().trim();
+      const slots = Array.isArray(entry?.slots)
+        ? entry.slots.map((slot) => (slot || "").toString().trim()).filter(Boolean)
+        : [];
+
+      return {
+        day,
+        date: normalizedDate,
+        dateLabel: formattedDate,
+        slots
+      };
+    });
+
+    return mapped.sort((a, b) => {
+      if (a.date && b.date) return a.date.localeCompare(b.date);
+      if (a.date) return -1;
+      if (b.date) return 1;
+      return a.day.localeCompare(b.day);
+    });
+  }, [doctor]);
+
+  const totalSlots = useMemo(
+    () => availabilityByDay.reduce((count, day) => count + day.slots.length, 0),
+    [availabilityByDay]
+  );
 
   if (loading) {
     return (
@@ -87,17 +126,41 @@ function DoctorDetails() {
           </div>
 
           <div className="details-card">
-            <h2>Availability</h2>
-            {doctor.availability?.length ? (
-              <ul className="availability-list">
-                {doctor.availability.map((item, index) => (
-                  <li key={`${item.day}-${index}`}>
-                    <strong>{item.day}:</strong> {item.slots?.join(", ") || "No slots"}
-                  </li>
+            <div className="availability-card-head">
+              <h2>Available Slots</h2>
+              <p>
+                {availabilityByDay.length} day{availabilityByDay.length === 1 ? "" : "s"} · {totalSlots} slot
+                {totalSlots === 1 ? "" : "s"}
+              </p>
+            </div>
+
+            {availabilityByDay.length > 0 ? (
+              <div className="availability-day-grid">
+                {availabilityByDay.map((item, index) => (
+                  <article className="availability-day-card" key={`${item.date || item.day}-${index}`}>
+                    <header className="availability-day-head">
+                      <h3>{item.dateLabel || item.day}</h3>
+                      <span>
+                        {item.slots.length} slot{item.slots.length === 1 ? "" : "s"}
+                      </span>
+                    </header>
+
+                    {item.slots.length > 0 ? (
+                      <div className="availability-slot-wrap">
+                        {item.slots.map((slot, slotIndex) => (
+                          <span className="availability-slot-chip" key={`${item.day}-${slot}-${slotIndex}`}>
+                            {slot}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="availability-day-empty">No slots listed for this day.</p>
+                    )}
+                  </article>
                 ))}
-              </ul>
+              </div>
             ) : (
-              <p>No availability listed yet.</p>
+              <p className="availability-day-empty">No availability listed yet.</p>
             )}
           </div>
 

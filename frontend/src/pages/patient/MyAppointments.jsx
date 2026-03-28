@@ -7,7 +7,12 @@ const statusOptions = ["ALL", "PENDING", "ACCEPTED", "REJECTED", "CANCELLED", "C
 
 const formatDate = (value) => {
   if (!value) return "-";
-  return new Date(value).toLocaleDateString();
+  return new Date(value).toLocaleDateString(undefined, {
+    weekday: "short",
+    year: "numeric",
+    month: "short",
+    day: "numeric"
+  });
 };
 
 const toInputDate = (value) => {
@@ -115,9 +120,12 @@ function MyAppointments() {
         subtitle="Track statuses, update pending appointments, complete payments, and join consultations."
       />
 
-      <div className="panel">
-        <h3>Status Filter</h3>
-        <div className="quick-actions">
+      <div className="panel appointments-filter-panel">
+        <div className="appointments-filter-head">
+          <h3>Status Filter</h3>
+          <p>{loading ? "Loading..." : `${appointments.length} appointment${appointments.length === 1 ? "" : "s"} found`}</p>
+        </div>
+        <div className="appointments-filter-actions">
           {statusOptions.map((option) => (
             <button
               key={option}
@@ -135,27 +143,58 @@ function MyAppointments() {
       {success && <p className="form-success">{success}</p>}
       {loading && <p>Loading appointments...</p>}
 
-      {!loading && appointments.length === 0 && <p>No appointments found for selected filter.</p>}
+      {!loading && appointments.length === 0 && (
+        <p className="appointments-empty">No appointments found for selected filter.</p>
+      )}
 
       {!loading && appointments.length > 0 && (
-        <div className="stats-grid">
+        <div className="patient-appointments-grid">
           {appointments.map((appointment) => {
             const payment = paymentsByAppointment[appointment._id];
             const paymentStatus = payment?.status || "PENDING";
 
             return (
-              <div className="stat-card" key={appointment._id}>
-                <h3>{appointment.doctorName}</h3>
-                <p className="stat-value">{appointment.status}</p>
-                <span>
-                  {formatDate(appointment.appointmentDate)} at {appointment.timeSlot}
-                </span>
-                <span>Reason: {appointment.reason}</span>
-                <span>Fee: LKR {appointment.consultationFee || 0}</span>
-                <span>Payment: {paymentStatus}</span>
+              <article className="appointment-card" key={appointment._id}>
+                <header className="appointment-card-head">
+                  <div>
+                    <h3 className="appointment-patient">{appointment.doctorName}</h3>
+                    <p className="appointment-datetime">
+                      {formatDate(appointment.appointmentDate)} at {appointment.timeSlot}
+                    </p>
+                  </div>
+                  <span className={`appointment-status appointment-status--${appointment.status.toLowerCase()}`}>
+                    {appointment.status}
+                  </span>
+                </header>
+
+                <div className="appointment-info-grid">
+                  <div className="appointment-info-item">
+                    <span className="appointment-label">Reason</span>
+                    <span className="appointment-value">{appointment.reason}</span>
+                  </div>
+
+                  <div className="appointment-info-item">
+                    <span className="appointment-label">Consultation Fee</span>
+                    <span className="appointment-value">LKR {appointment.consultationFee || 0}</span>
+                  </div>
+
+                  <div className="appointment-info-item">
+                    <span className="appointment-label">Payment</span>
+                    <span className={`payment-status payment-status--${paymentStatus.toLowerCase()}`}>
+                      {paymentStatus}
+                    </span>
+                  </div>
+
+                  {appointment.rejectionReason && (
+                    <div className="appointment-info-item appointment-info-item--full">
+                      <span className="appointment-label">Rejection Reason</span>
+                      <span className="appointment-value">{appointment.rejectionReason}</span>
+                    </div>
+                  )}
+                </div>
 
                 {editingId === appointment._id ? (
-                  <div className="form-grid">
+                  <div className="appointment-edit-form form-grid two-col">
                     <label>
                       New Date
                       <input
@@ -174,7 +213,7 @@ function MyAppointments() {
                         onChange={(event) => setEditForm((prev) => ({ ...prev, timeSlot: event.target.value }))}
                       />
                     </label>
-                    <label>
+                    <label className="span-2">
                       Reason
                       <textarea
                         rows="3"
@@ -182,7 +221,7 @@ function MyAppointments() {
                         onChange={(event) => setEditForm((prev) => ({ ...prev, reason: event.target.value }))}
                       />
                     </label>
-                    <div className="quick-actions">
+                    <div className="appointment-edit-actions span-2">
                       <button type="button" className="btn btn-primary" onClick={saveEdit}>
                         Save
                       </button>
@@ -192,7 +231,7 @@ function MyAppointments() {
                     </div>
                   </div>
                 ) : (
-                  <div className="quick-actions">
+                  <div className="appointment-actions">
                     {appointment.status === "PENDING" && (
                       <>
                         <button type="button" className="btn btn-outline" onClick={() => startEdit(appointment)}>
@@ -231,7 +270,7 @@ function MyAppointments() {
                     )}
                   </div>
                 )}
-              </div>
+              </article>
             );
           })}
         </div>
