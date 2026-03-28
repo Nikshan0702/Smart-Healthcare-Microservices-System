@@ -126,24 +126,6 @@ function Doctors() {
   return (
     <section className="section section-soft doctors-page">
       <div className="container">
-        <div className="doctors-hero">
-          <div className="doctors-hero-copy">
-            <span className="eyebrow">Find Specialists</span>
-            <h1>Choose The Right Doctor Faster</h1>
-            <p>Search by specialization, compare profiles, and book the most suitable consultation slot.</p>
-          </div>
-          <div className="doctors-hero-stats">
-            <div className="doctors-hero-stat">
-              <strong>{allSpecializations.length}</strong>
-              <span>Specializations</span>
-            </div>
-            <div className="doctors-hero-stat">
-              <strong>{doctors.length}</strong>
-              <span>Doctors Found</span>
-            </div>
-          </div>
-        </div>
-
         <form className="search-panel doctors-search-panel" onSubmit={handleSearch}>
           <div className="doctors-search-main">
             <label className="doctors-search-input-wrap" htmlFor="doctor-search-input">
@@ -159,15 +141,16 @@ function Doctors() {
                 placeholder="Search by specialization (Cardiology, Neurology...)"
                 aria-label="Search doctors by specialization"
               />
+              <span className="doctors-search-shortcut">Press Enter</span>
             </label>
 
             <div className="doctors-search-actions">
               {(query.trim() || appliedFilter) && (
-                <button className="btn btn-ghost" type="button" onClick={handleClear}>
+                <button className="btn btn-ghost doctors-clear-btn" type="button" onClick={handleClear}>
                   Clear
                 </button>
               )}
-              <button className="btn btn-primary" type="submit">
+              <button className="btn btn-primary doctors-search-btn" type="submit">
                 Search
               </button>
             </div>

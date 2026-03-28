@@ -190,9 +190,11 @@ function DoctorAvailability() {
                 </div>
               </div>
 
-              <button type="button" className="btn btn-outline" onClick={addRow}>
-                Add Date
-              </button>
+              <div className="availability-toolbar-actions">
+                <button type="button" className="btn btn-outline availability-add-btn" onClick={addRow}>
+                  Add Date
+                </button>
+              </div>
             </div>
 
             <div className="availability-grid doctor-availability-grid">
@@ -202,7 +204,7 @@ function DoctorAvailability() {
                     <h3>Availability Entry {index + 1}</h3>
                     <button
                       type="button"
-                      className="btn btn-outline btn-small"
+                      className="btn btn-outline btn-small availability-remove-btn"
                       onClick={() => removeRow(index)}
                       disabled={rows.length === 1}
                     >
@@ -215,6 +217,7 @@ function DoctorAvailability() {
                       <span>Date</span>
                       <input
                         type="date"
+                        className="availability-input"
                         min={minDate}
                         value={row.date}
                         onChange={(event) => updateRow(index, "date", event.target.value)}
@@ -225,6 +228,7 @@ function DoctorAvailability() {
                       <span>Time Slots</span>
                       <input
                         type="text"
+                        className="availability-input"
                         placeholder="09:00 AM, 10:30 AM, 02:00 PM"
                         value={row.slots}
                         onChange={(event) => updateRow(index, "slots", event.target.value)}
@@ -238,7 +242,7 @@ function DoctorAvailability() {
             </div>
 
             <div className="availability-actions">
-              <button type="submit" className="btn btn-primary" disabled={saving}>
+              <button type="submit" className="btn btn-primary availability-submit-btn" disabled={saving}>
                 {saving ? "Saving..." : "Save Availability"}
               </button>
             </div>
