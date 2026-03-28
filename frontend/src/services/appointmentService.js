@@ -1,6 +1,11 @@
 import api from "./api";
 
 export const appointmentService = {
+  async getAvailableSlots(params) {
+    const { data } = await api.get("/appointments/available-slots", { params });
+    return data;
+  },
+
   async bookAppointment(payload) {
     const { data } = await api.post("/appointments", payload);
     return data;
