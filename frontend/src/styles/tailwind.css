@@ -5,6 +5,7 @@
 @import "./forms.css";
 @import "./cards.css";
 @import "./dashboard.css";
+@import "./redesign.css";
 
 @tailwind base;
 @tailwind components;

@@ -40,46 +40,50 @@ function Login() {
   };
 
   return (
-    <section className="section container centered-page">
-      <div className="form-card auth-card">
-        <h1>Login</h1>
-        <p>Use your patient, doctor, or admin account credentials.</p>
+    <section className="section auth-shell">
+      <div className="container">
+        <div className="auth-shell__layout auth-shell__layout--single">
+          <div className="form-card auth-card auth-card--premium">
+            <h2>Sign In</h2>
+            <p>Use your account credentials to continue.</p>
 
-        <form onSubmit={handleSubmit} className="form-grid">
-          <label>
-            Email
-            <input
-              type="email"
-              name="email"
-              value={form.email}
-              onChange={handleChange}
-              placeholder="you@example.com"
-              required
-            />
-          </label>
+            <form onSubmit={handleSubmit} className="form-grid">
+              <label>
+                Email
+                <input
+                  type="email"
+                  name="email"
+                  value={form.email}
+                  onChange={handleChange}
+                  placeholder="you@example.com"
+                  required
+                />
+              </label>
 
-          <label>
-            Password
-            <input
-              type="password"
-              name="password"
-              value={form.password}
-              onChange={handleChange}
-              placeholder="Enter your password"
-              required
-            />
-          </label>
+              <label>
+                Password
+                <input
+                  type="password"
+                  name="password"
+                  value={form.password}
+                  onChange={handleChange}
+                  placeholder="Enter your password"
+                  required
+                />
+              </label>
 
-          {error && <p className="form-error">{error}</p>}
+              {error && <p className="form-error">{error}</p>}
 
-          <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
-            {loading ? "Signing in..." : "Sign In"}
-          </button>
-        </form>
+              <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
+                {loading ? "Signing in..." : "Sign In"}
+              </button>
+            </form>
 
-        <p className="auth-helper">
-          New patient? <Link to="/register-patient">Create patient account</Link>
-        </p>
+            <p className="auth-helper">
+              New patient? <Link to="/register-patient">Create patient account</Link>
+            </p>
+          </div>
+        </div>
       </div>
     </section>
   );

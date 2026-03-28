@@ -175,7 +175,7 @@ function PatientDashboard() {
     <section className="dashboard-page">
       <PageHeader
         title={`Welcome back, ${user?.name?.split(' ')[0] || "Patient"}!`}
-        subtitle="Here's an overview of your healthcare journey"
+        subtitle="Here is your healthcare account overview"
       />
 
       <div className="dashboard-stats">
@@ -229,7 +229,7 @@ function PatientDashboard() {
 
         <div className="dashboard-widgets">
           <div className="widget upcoming-appointments">
-            <h3>Recent Activity</h3>
+            <h3>Next Steps</h3>
             <div className="widget-content">
               <div className="activity-item">
                 <div className="activity-icon">
@@ -239,8 +239,8 @@ function PatientDashboard() {
                   </svg>
                 </div>
                 <div className="activity-details">
-                  <p className="activity-title">Appointment with Dr. John Smith</p>
-                  <p className="activity-time">Tomorrow, 10:00 AM</p>
+                  <p className="activity-title">Review pending and accepted appointments</p>
+                  <p className="activity-time">Track status from My Appointments</p>
                 </div>
               </div>
               <div className="activity-item">
@@ -251,30 +251,30 @@ function PatientDashboard() {
                   </svg>
                 </div>
                 <div className="activity-details">
-                  <p className="activity-title">Blood Test Results</p>
-                  <p className="activity-time">2 days ago</p>
+                  <p className="activity-title">Open your latest prescriptions and reports</p>
+                  <p className="activity-time">Keep records ready before consultations</p>
                 </div>
               </div>
             </div>
             <Link to="/patient/appointments" className="widget-link">
-              View All Activity →
+              Open Appointments →
             </Link>
           </div>
 
           <div className="widget health-tips">
-            <h3>Health Tips</h3>
+            <h3>Account Reminders</h3>
             <div className="widget-content">
               <div className="tip-item">
-                <h4>Stay Hydrated</h4>
-                <p>Drink at least 8 glasses of water daily for optimal health.</p>
+                <h4>Keep Profile Updated</h4>
+                <p>Update phone number and personal details for smoother communication.</p>
               </div>
               <div className="tip-item">
-                <h4>Regular Exercise</h4>
-                <p>Aim for 30 minutes of moderate activity most days of the week.</p>
+                <h4>Upload Key Reports</h4>
+                <p>Attach recent reports before appointments so doctors can review them early.</p>
               </div>
             </div>
-            <Link to="/health-tips" className="widget-link">
-              More Tips →
+            <Link to="/patient/profile" className="widget-link">
+              Manage Profile →
             </Link>
           </div>
         </div>
