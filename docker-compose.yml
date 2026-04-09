@@ -1,0 +1,144 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  auth-service:
+    build:
+      context: ./services/auth-service
+      dockerfile: Dockerfile
+    container_name: auth-service
+    env_file:
+      - ./services/auth-service/.env
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./services/auth-service:/app
+      - /app/node_modules
+    depends_on:
+      - mongo
+
+  doctor-service:
+    build:
+      context: ./services/doctor-service
+      dockerfile: Dockerfile
+    container_name: doctor-service
+    env_file:
+      - ./services/doctor-service/.env
+    ports:
+      - "5002:5002"
+    volumes:
+      - ./services/doctor-service:/app
+      - /app/node_modules
+    depends_on:
+      - mongo
+
+  appointment-service:
+    build:
+      context: ./services/appointment-service
+      dockerfile: Dockerfile
+    container_name: appointment-service
+    env_file:
+      - ./services/appointment-service/.env
+    ports:
+      - "5003:5003"
+    volumes:
+      - ./services/appointment-service:/app
+      - /app/node_modules
+    depends_on:
+      - mongo
+      - doctor-service
+
+  patient-service:
+    build:
+      context: ./services/patient-service
+      dockerfile: Dockerfile
+    container_name: patient-service
+    env_file:
+      - ./services/patient-service/.env
+    ports:
+      - "5004:5004"
+    volumes:
+      - ./services/patient-service:/app
+      - /app/node_modules
+    depends_on:
+      - mongo
+      - appointment-service
+
+  payment-service:
+    build:
+      context: ./services/payment-service
+      dockerfile: Dockerfile
+    container_name: payment-service
+    env_file:
+      - ./services/payment-service/.env
+    ports:
+      - "5005:5005"
+    volumes:
+      - ./services/payment-service:/app
+      - /app/node_modules
+    depends_on:
+      - mongo
+      - appointment-service
+
+  notification-service:
+    build:
+      context: ./services/notification-service
+      dockerfile: Dockerfile
+    container_name: notification-service
+    env_file:
+      - ./services/notification-service/.env
+    ports:
+      - "5006:5006"
+    volumes:
+      - ./services/notification-service:/app
+      - /app/node_modules
+
+  gateway:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    container_name: gateway
+    environment:
+      PORT: 8080
+      AUTH_SERVICE_URL: http://auth-service:5001
+      DOCTOR_SERVICE_URL: http://doctor-service:5002
+      APPOINTMENT_SERVICE_URL: http://appointment-service:5003
+      PATIENT_SERVICE_URL: http://patient-service:5004
+      PAYMENT_SERVICE_URL: http://payment-service:5005
+      NOTIFICATION_SERVICE_URL: http://notification-service:5006
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./gateway:/app
+      - /app/node_modules
+    depends_on:
+      - auth-service
+      - doctor-service
+      - appointment-service
+      - patient-service
+      - payment-service
+      - notification-service
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 5173"
+    environment:
+      VITE_API_BASE_URL: http://localhost:8080
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - gateway
+
+volumes:
+  mongo-data:
