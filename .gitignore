@@ -1,0 +1,69 @@
+# Dependencies
+**/node_modules/
+
+# Build outputs
+**/dist/
+**/dist-ssr/
+**/build/
+**/.vite/
+**/coverage/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Environment files
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.sample
+
+# Local overrides
+*.local
+
+# Cache/temp
+**/.cache/
+**/.eslintcache
+**/tmp/
+**/temp/
+
+# Runtime/user data
+**/uploads/
+
+# Editor/OS files
+.DS_Store
+**/.DS_Store
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Temp: hide unrelated services while committing payment-service
+/services/appointment-service/
+/services/auth-service/
+/services/doctor-service/
+/services/patient-service/
+/frontend/
+/gateway/
+seed-doctors.js
+DOCTOR_SETUP.md
+README 2.md
+SERVICE_TEST_RESULTS.md
+
+# Temp: ignore other k8s manifests; keep payment ones visible
+/k8s/*
+!/k8s/payment-deployment.yaml
+!/k8s/payment-service.yaml
+
+# Temp: ignore root packages and readme while focusing on payment service
+/package.json
+/package-lock.json
+/readme.txt
