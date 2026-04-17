@@ -3,26 +3,24 @@ const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const cors = require("cors");
 const morgan = require("morgan");
-const paymentRoutes = require("./routes/paymentRoutes");
-const { handleStripeWebhook } = require("./controllers/paymentController");
+const telemedicineRoutes = require("./routes/telemedicineRoutes");
 
 dotenv.config();
 
 const app = express();
 
 app.use(cors());
-app.use(morgan("dev"));
-app.post("/payments/webhook", express.raw({ type: "application/json" }), handleStripeWebhook);
 app.use(express.json());
+app.use(morgan("dev"));
 
 app.get("/", (req, res) => {
   res.status(200).json({
-    service: "payment-service",
+    service: "telemedicine-service",
     status: "running"
   });
 });
 
-app.use("/payments", paymentRoutes);
+app.use("/telemedicine", telemedicineRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });
@@ -31,14 +29,14 @@ app.use((req, res) => {
 const startServer = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI);
-    console.log("Payment service connected to MongoDB");
+    console.log("Telemedicine service connected to MongoDB");
 
-    const PORT = process.env.PORT || 5005;
+    const PORT = process.env.PORT || 5007;
     app.listen(PORT, () => {
-      console.log(`Payment service running on port ${PORT}`);
+      console.log(`Telemedicine service running on port ${PORT}`);
     });
   } catch (error) {
-    console.error("Failed to start payment service:", error.message);
+    console.error("Failed to start telemedicine service:", error.message);
     process.exit(1);
   }
 };

@@ -1,7 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import PageHeader from "../../components/PageHeader";
 import { appointmentService } from "../../services/appointmentService";
 import { paymentService } from "../../services/paymentService";
+import { isValidDateKey, normalizeString } from "../../utils/validators";
 
 const statusOptions = ["ALL", "PENDING", "ACCEPTED", "REJECTED", "CANCELLED", "COMPLETED"];
 
@@ -21,16 +23,18 @@ const toInputDate = (value) => {
 };
 
 function MyAppointments() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [status, setStatus] = useState("ALL");
   const [appointments, setAppointments] = useState([]);
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [processingStripeResult, setProcessingStripeResult] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [editingId, setEditingId] = useState("");
   const [editForm, setEditForm] = useState({ appointmentDate: "", timeSlot: "", reason: "" });
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     setError("");
 
@@ -47,11 +51,76 @@ function MyAppointments() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [status]);
 
   useEffect(() => {
     loadData();
-  }, [status]);
+  }, [loadData]);
+
+  useEffect(() => {
+    const paymentResult = searchParams.get("payment");
+    const sessionId = searchParams.get("session_id");
+
+    if (!paymentResult) {
+      return undefined;
+    }
+
+    const clearPaymentParams = () => {
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.delete("payment");
+      nextParams.delete("session_id");
+      nextParams.delete("appointmentId");
+      setSearchParams(nextParams, { replace: true });
+    };
+
+    if (paymentResult === "cancelled") {
+      setError("Payment was cancelled before completion.");
+      clearPaymentParams();
+      return undefined;
+    }
+
+    if (paymentResult !== "success" || !sessionId) {
+      return undefined;
+    }
+
+    let ignore = false;
+
+    const syncStripePayment = async () => {
+      setProcessingStripeResult(true);
+      setError("");
+
+      try {
+        const result = await paymentService.getCheckoutSessionStatus(sessionId);
+
+        if (ignore) {
+          return;
+        }
+
+        if (result.payment?.status === "PAID") {
+          setSuccess("Payment completed successfully.");
+        } else {
+          setSuccess("Payment is being confirmed. Refresh again in a few seconds if the status stays pending.");
+        }
+
+        await loadData();
+      } catch (err) {
+        if (!ignore) {
+          setError(err.response?.data?.message || "Failed to confirm Stripe payment status.");
+        }
+      } finally {
+        if (!ignore) {
+          setProcessingStripeResult(false);
+          clearPaymentParams();
+        }
+      }
+    };
+
+    syncStripePayment();
+
+    return () => {
+      ignore = true;
+    };
+  }, [loadData, searchParams, setSearchParams]);
 
   const paymentsByAppointment = useMemo(() => {
     const map = {};
@@ -74,8 +143,29 @@ function MyAppointments() {
     setError("");
     setSuccess("");
 
+    const reason = normalizeString(editForm.reason);
+    if (reason.length < 5 || reason.length > 500) {
+      setError("Reason must be between 5 and 500 characters.");
+      return;
+    }
+
+    if (!isValidDateKey(editForm.appointmentDate)) {
+      setError("Appointment date must be a valid date.");
+      return;
+    }
+
+    const timeSlot = normalizeString(editForm.timeSlot);
+    if (timeSlot.length < 2 || timeSlot.length > 40) {
+      setError("Time slot must be between 2 and 40 characters.");
+      return;
+    }
+
     try {
-      await appointmentService.updateMyAppointment(editingId, editForm);
+      await appointmentService.updateMyAppointment(editingId, {
+        ...editForm,
+        reason,
+        timeSlot
+      });
       setSuccess("Appointment updated successfully.");
       setEditingId("");
       loadData();
@@ -102,12 +192,16 @@ function MyAppointments() {
     setSuccess("");
 
     try {
-      await paymentService.payForAppointment({
+      const result = await paymentService.createCheckoutSession({
         appointmentId: appointment._id,
         amount: Number(appointment.consultationFee || 0)
       });
-      setSuccess("Payment completed successfully.");
-      loadData();
+
+      if (!result.checkoutUrl) {
+        throw new Error("Stripe Checkout URL was not returned");
+      }
+
+      window.location.assign(result.checkoutUrl);
     } catch (err) {
       setError(err.response?.data?.message || "Payment failed.");
     }
@@ -142,6 +236,7 @@ function MyAppointments() {
       {error && <p className="form-error">{error}</p>}
       {success && <p className="form-success">{success}</p>}
       {loading && <p>Loading appointments...</p>}
+      {!loading && processingStripeResult && <p>Confirming Stripe payment...</p>}
 
       {!loading && appointments.length === 0 && (
         <p className="appointments-empty">No appointments found for selected filter.</p>
@@ -263,7 +358,7 @@ function MyAppointments() {
                       </button>
                     )}
 
-                    {appointment.status === "ACCEPTED" && appointment.meetingLink && (
+                    {appointment.status === "ACCEPTED" && paymentStatus === "PAID" && appointment.meetingLink && (
                       <a className="btn btn-primary" href={appointment.meetingLink} target="_blank" rel="noreferrer">
                         Join Consultation
                       </a>

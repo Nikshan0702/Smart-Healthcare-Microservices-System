@@ -1,7 +1,7 @@
 {
-  "name": "payment-service",
+  "name": "telemedicine-service",
   "version": "1.0.0",
-  "description": "Mock payment service for smart healthcare system",
+  "description": "Telemedicine (video session integration) microservice for smart healthcare system",
   "main": "server.js",
   "scripts": {
     "dev": "nodemon server.js",
@@ -13,8 +13,7 @@
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.9.5",
-    "morgan": "^1.10.0",
-    "stripe": "^22.0.1"
+    "morgan": "^1.10.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.9"

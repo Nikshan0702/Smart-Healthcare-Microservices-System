@@ -2,26 +2,60 @@ import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import PageHeader from "../../components/PageHeader";
 import { doctorService } from "../../services/doctorService";
+import { paymentService } from "../../services/paymentService";
+import { formatCurrency, formatDateTime } from "../../utils/formatters";
 
 function AdminDashboard() {
   const [doctorCount, setDoctorCount] = useState(0);
+  const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadDoctors = async () => {
+    let ignore = false;
+
+    const loadDashboard = async () => {
       setLoading(true);
+
       try {
-        const data = await doctorService.getDoctors();
-        setDoctorCount(Array.isArray(data) ? data.length : 0);
-      } catch {
-        setDoctorCount(0);
+        const [doctorsResult, paymentsResult] = await Promise.allSettled([
+          doctorService.getDoctors(),
+          paymentService.getAllPayments()
+        ]);
+
+        if (ignore) {
+          return;
+        }
+
+        const doctors =
+          doctorsResult.status === "fulfilled" && Array.isArray(doctorsResult.value)
+            ? doctorsResult.value
+            : [];
+        const paymentRecords =
+          paymentsResult.status === "fulfilled" && Array.isArray(paymentsResult.value)
+            ? paymentsResult.value
+            : [];
+
+        setDoctorCount(doctors.length);
+        setPayments(paymentRecords);
       } finally {
-        setLoading(false);
+        if (!ignore) {
+          setLoading(false);
+        }
       }
     };
 
-    loadDoctors();
+    loadDashboard();
+
+    return () => {
+      ignore = true;
+    };
   }, []);
+
+  const revenueCurrency = payments.find((payment) => payment.currency)?.currency || "LKR";
+  const paidPayments = payments.filter((payment) => payment.status === "PAID");
+  const pendingPayments = payments.filter((payment) => payment.status === "PENDING");
+  const failedPayments = payments.filter((payment) => payment.status === "FAILED");
+  const totalRevenue = paidPayments.reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
 
   const statCards = [
     {
@@ -39,29 +73,51 @@ function AdminDashboard() {
       )
     },
     {
-      title: "Doctor Account Setup",
-      value: "Enabled",
-      description: "Admins can create doctor login credentials",
-      color: "success",
+      title: "All Payments",
+      value: loading ? "..." : payments.length,
+      description: "Every payment record across patient accounts",
+      color: "secondary",
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-          <circle cx="12" cy="16" r="1" />
-          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+          <rect x="2" y="5" width="20" height="14" rx="2" />
+          <path d="M2 10h20" />
         </svg>
       )
     },
     {
-      title: "Patient Registration",
-      value: "Open",
-      description: "Patients can self-register from the public portal",
+      title: "Paid Revenue",
+      value: loading ? "..." : formatCurrency(totalRevenue, revenueCurrency),
+      description: `${paidPayments.length} payment${paidPayments.length === 1 ? "" : "s"} marked as paid`,
+      color: "success",
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M12 1v22" />
+          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+        </svg>
+      )
+    },
+    {
+      title: "Pending Payments",
+      value: loading ? "..." : pendingPayments.length,
+      description: "Payments still waiting for confirmation",
       color: "accent",
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-          <circle cx="8.5" cy="7" r="4" />
-          <line x1="20" y1="8" x2="20" y2="14" />
-          <line x1="23" y1="11" x2="17" y2="11" />
+          <circle cx="12" cy="12" r="10" />
+          <polyline points="12,6 12,12 16,14" />
+        </svg>
+      )
+    },
+    {
+      title: "Failed Payments",
+      value: loading ? "..." : failedPayments.length,
+      description: "Records that need follow-up or retry",
+      color: "primary",
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="15" y1="9" x2="9" y2="15" />
+          <line x1="9" y1="9" x2="15" y2="15" />
         </svg>
       )
     }
@@ -84,7 +140,7 @@ function AdminDashboard() {
     },
     {
       title: "Create Doctor Profile",
-      description: "Step 2: link the doctor profile with the doctor user ID.",
+      description: "Step 2: select the doctor account and create its profile.",
       to: "/admin/create-doctor-profile",
       color: "secondary",
       icon: (
@@ -102,7 +158,7 @@ function AdminDashboard() {
     <section className="dashboard-page">
       <PageHeader
         title="Admin Dashboard"
-        subtitle="Manage doctor onboarding from account creation to profile activation."
+        subtitle="Manage doctor onboarding and monitor all patient payment activity from one place."
       />
 
       <div className="dashboard-stats">
@@ -143,10 +199,78 @@ function AdminDashboard() {
           </div>
         </div>
 
+        <div className="panel admin-payment-panel">
+          <div className="admin-payment-panel-head">
+            <div>
+              <h3>All Payment Details</h3>
+              <p>
+                Review every payment record across patient accounts, including status, amount, method, and timestamps.
+              </p>
+            </div>
+            <span>{loading ? "..." : `${payments.length} record${payments.length === 1 ? "" : "s"}`}</span>
+          </div>
+
+          {loading ? (
+            <p>Loading payment details...</p>
+          ) : payments.length === 0 ? (
+            <p className="admin-payment-empty">No payment records have been created yet.</p>
+          ) : (
+            <div className="admin-payment-list">
+              {payments.map((payment) => (
+                <article key={payment._id} className="admin-payment-card">
+                  <div className="admin-payment-card-head">
+                    <div>
+                      <h4>{payment.patientName || "Unknown Patient"}</h4>
+                      <p>{payment.patientEmail || payment.patientId}</p>
+                    </div>
+                    <div className="admin-payment-card-amount">
+                      <strong>{formatCurrency(payment.amount, payment.currency)}</strong>
+                      <span className={`payment-status payment-status--${payment.status.toLowerCase()}`}>
+                        {payment.status}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="admin-payment-grid">
+                    <div className="admin-payment-item">
+                      <span>Appointment</span>
+                      <strong>{payment.appointmentId}</strong>
+                    </div>
+                    <div className="admin-payment-item">
+                      <span>Patient ID</span>
+                      <strong>{payment.patientId}</strong>
+                    </div>
+                    <div className="admin-payment-item">
+                      <span>Method</span>
+                      <strong>{(payment.method || "MOCK_CARD").replace(/_/g, " ")}</strong>
+                    </div>
+                    <div className="admin-payment-item">
+                      <span>Transaction</span>
+                      <strong>{payment.transactionRef || payment.stripePaymentIntentId || "-"}</strong>
+                    </div>
+                    <div className="admin-payment-item">
+                      <span>Created</span>
+                      <strong>{formatDateTime(payment.createdAt)}</strong>
+                    </div>
+                    <div className="admin-payment-item">
+                      <span>Paid At</span>
+                      <strong>{formatDateTime(payment.paidAt)}</strong>
+                    </div>
+                  </div>
+
+                  {payment.failureReason && (
+                    <p className="admin-payment-failure">{payment.failureReason}</p>
+                  )}
+                </article>
+              ))}
+            </div>
+          )}
+        </div>
+
         <div className="panel admin-note-panel">
           <h3>Onboarding Sequence</h3>
-          <p>Create a doctor account first, then create a profile using the generated user ID.</p>
-          <p>This ensures appointments are assigned to the correct doctor login.</p>
+          <p>Create a doctor account first, then select that account while creating the profile.</p>
+          <p>This ensures appointments are assigned to the correct doctor login and payment records stay traceable.</p>
         </div>
       </div>
     </section>

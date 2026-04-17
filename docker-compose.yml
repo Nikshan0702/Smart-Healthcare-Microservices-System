@@ -52,6 +52,22 @@ services:
     depends_on:
       - mongo
       - doctor-service
+      - telemedicine-service
+
+  telemedicine-service:
+    build:
+      context: ./services/telemedicine-service
+      dockerfile: Dockerfile
+    container_name: telemedicine-service
+    env_file:
+      - ./services/telemedicine-service/.env
+    ports:
+      - "5007:5007"
+    volumes:
+      - ./services/telemedicine-service:/app
+      - /app/node_modules
+    depends_on:
+      - mongo
 
   patient-service:
     build:
@@ -111,6 +127,7 @@ services:
       PATIENT_SERVICE_URL: http://patient-service:5004
       PAYMENT_SERVICE_URL: http://payment-service:5005
       NOTIFICATION_SERVICE_URL: http://notification-service:5006
+      TELEMEDICINE_SERVICE_URL: http://telemedicine-service:5007
     ports:
       - "8080:8080"
     volumes:
@@ -120,6 +137,7 @@ services:
       - auth-service
       - doctor-service
       - appointment-service
+      - telemedicine-service
       - patient-service
       - payment-service
       - notification-service
@@ -129,7 +147,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: frontend
-    command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 5173"
+    command: sh -c "[ -x /app/node_modules/.bin/vite ] || npm install && npm run dev -- --host 0.0.0.0 --port 5173"
     environment:
       VITE_API_BASE_URL: http://localhost:8080
     ports:

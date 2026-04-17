@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { roleHomePath, useAuth } from "../context/AuthContext";
+import { isValidEmail, normalizeString } from "../utils/validators";
 
 function Login() {
   const navigate = useNavigate();
@@ -25,10 +26,24 @@ function Login() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError("");
+
+    if (!isValidEmail(form.email)) {
+      setError("Email must be a valid email address.");
+      return;
+    }
+
+    if (!normalizeString(form.password)) {
+      setError("Password is required.");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const loggedInUser = await login(form);
+      const loggedInUser = await login({
+        email: normalizeString(form.email).toLowerCase(),
+        password: form.password
+      });
       const from = location.state?.from;
       const targetPath = from || roleHomePath(loggedInUser.role);
       navigate(targetPath, { replace: true });

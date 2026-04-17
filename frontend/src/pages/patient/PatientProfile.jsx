@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import PageHeader from "../../components/PageHeader";
 import { patientService } from "../../services/patientService";
+import { isValidDateKey, isValidPhone, normalizeName, normalizeString } from "../../utils/validators";
 
 const initialForm = {
   name: "",
@@ -58,7 +59,64 @@ function PatientProfile() {
     setSaving(true);
 
     try {
-      const data = await patientService.updateMyProfile(form);
+      const normalizedName = normalizeName(form.name);
+      if (normalizedName.length < 2 || normalizedName.length > 80) {
+        setError("Name must be between 2 and 80 characters.");
+        setSaving(false);
+        return;
+      }
+
+      if (!isValidPhone(form.phone)) {
+        setError("Phone must be a valid phone number.");
+        setSaving(false);
+        return;
+      }
+
+      if (!isValidDateKey(form.dateOfBirth)) {
+        setError("Date of birth must be a valid date.");
+        setSaving(false);
+        return;
+      }
+
+      if (form.dateOfBirth) {
+        const dob = new Date(`${form.dateOfBirth}T00:00:00.000Z`);
+        if (!Number.isNaN(dob.getTime()) && dob > new Date()) {
+          setError("Date of birth cannot be in the future.");
+          setSaving(false);
+          return;
+        }
+      }
+
+      const gender = normalizeString(form.gender);
+      if (gender && !["Male", "Female", "Other"].includes(gender)) {
+        setError("Gender must be one of: Male, Female, Other.");
+        setSaving(false);
+        return;
+      }
+
+      if (normalizeString(form.address).length > 200) {
+        setError("Address must be 200 characters or less.");
+        setSaving(false);
+        return;
+      }
+
+      if (normalizeString(form.medicalHistory).length > 2000) {
+        setError("Medical history must be 2000 characters or less.");
+        setSaving(false);
+        return;
+      }
+
+      const payload = {
+        ...form,
+        name: normalizedName,
+        phone: normalizeString(form.phone),
+        dateOfBirth: normalizeString(form.dateOfBirth),
+        gender,
+        address: normalizeString(form.address),
+        medicalHistory: normalizeString(form.medicalHistory)
+      };
+
+      const data = await patientService.updateMyProfile(payload);
       setSuccess(data.message || "Profile updated successfully.");
     } catch (err) {
       setError(err.response?.data?.message || "Failed to update profile.");

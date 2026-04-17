@@ -3,6 +3,7 @@ import EmptyState from "../../components/EmptyState";
 import Loader from "../../components/Loader";
 import PageHeader from "../../components/PageHeader";
 import { doctorService } from "../../services/doctorService";
+import { isValidDateKey, normalizeString } from "../../utils/validators";
 
 const emptyRow = { date: "", slots: "" };
 
@@ -113,7 +114,7 @@ function DoctorAvailability() {
     const availability = rows
       .filter((row) => row.date.trim())
       .map((row) => ({
-        date: row.date.trim(),
+        date: normalizeString(row.date),
         slots: row.slots
           .split(",")
           .map((slot) => slot.trim())
@@ -125,8 +126,25 @@ function DoctorAvailability() {
       return;
     }
 
+    if (availability.some((entry) => !isValidDateKey(entry.date))) {
+      setError("Each availability date must be a valid date.");
+      return;
+    }
+
     if (availability.some((entry) => entry.slots.length === 0)) {
       setError("Each selected date must include at least one slot.");
+      return;
+    }
+
+    const hasInvalidSlotText = availability.some((entry) =>
+      entry.slots.some((slot) => {
+        const normalizedSlot = normalizeString(slot);
+        return normalizedSlot.length < 2 || normalizedSlot.length > 40;
+      })
+    );
+
+    if (hasInvalidSlotText) {
+      setError("Each slot must be between 2 and 40 characters.");
       return;
     }
 

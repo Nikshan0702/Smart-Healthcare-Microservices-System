@@ -1,6 +1,31 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import EmptyState from "../../components/EmptyState";
+import Loader from "../../components/Loader";
 import PageHeader from "../../components/PageHeader";
 import { patientService } from "../../services/patientService";
+import { normalizeString } from "../../utils/validators";
+
+const formatDateTime = (value) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Unknown";
+  return date.toLocaleString();
+};
+
+const formatFileSize = (bytes) => {
+  if (!Number.isFinite(bytes) || bytes <= 0) return "Unknown size";
+
+  const units = ["B", "KB", "MB", "GB"];
+  let size = bytes;
+  let unitIndex = 0;
+
+  while (size >= 1024 && unitIndex < units.length - 1) {
+    size /= 1024;
+    unitIndex += 1;
+  }
+
+  const precision = size >= 10 || unitIndex === 0 ? 0 : 1;
+  return `${size.toFixed(precision)} ${units[unitIndex]}`;
+};
 
 function PatientReports() {
   const [reports, setReports] = useState([]);
@@ -29,6 +54,13 @@ function PatientReports() {
     loadReports();
   }, []);
 
+  const totalStorage = useMemo(
+    () => reports.reduce((sum, report) => sum + (Number(report.fileSize) || 0), 0),
+    [reports]
+  );
+
+  const latestUpload = reports[0]?.createdAt ? formatDateTime(reports[0].createdAt) : "No uploads yet";
+
   const handleUpload = async (event) => {
     event.preventDefault();
     setError("");
@@ -39,9 +71,26 @@ function PatientReports() {
       return;
     }
 
+    if (Number(form.file.size) > 5 * 1024 * 1024) {
+      setError("File size must be 5MB or less.");
+      return;
+    }
+
+    const title = normalizeString(form.title || "") || "Medical Report";
+    if (title.length < 2 || title.length > 80) {
+      setError("Title must be between 2 and 80 characters.");
+      return;
+    }
+
+    const description = normalizeString(form.description || "");
+    if (description.length > 500) {
+      setError("Description must be 500 characters or less.");
+      return;
+    }
+
     const payload = new FormData();
-    payload.append("title", form.title);
-    payload.append("description", form.description);
+    payload.append("title", title);
+    payload.append("description", description);
     payload.append("file", form.file);
 
     setUploading(true);
@@ -50,7 +99,7 @@ function PatientReports() {
       const data = await patientService.uploadMyReport(payload);
       setSuccess(data.message || "Report uploaded successfully.");
       setForm({ title: "", description: "", file: null });
-      loadReports();
+      await loadReports();
     } catch (err) {
       setError(err.response?.data?.message || "Failed to upload report.");
     } finally {
@@ -77,68 +126,144 @@ function PatientReports() {
   };
 
   return (
-    <section className="dashboard-page">
-      <PageHeader title="My Medical Reports" subtitle="Upload and manage your reports/documents." />
+    <section className="dashboard-page patient-reports-page">
+      <PageHeader
+        title="My Medical Reports"
+        subtitle="Upload lab results, scans, and supporting documents so they stay organized and easy to access."
+      />
 
-      <form className="form-card" onSubmit={handleUpload}>
-        <div className="form-grid two-col">
-          <label>
-            Report Title
-            <input
-              type="text"
-              value={form.title}
-              onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
-              placeholder="Blood Test / X-Ray"
-            />
-          </label>
+      {error && <p className="form-error">{error}</p>}
+      {success && <p className="form-success">{success}</p>}
 
-          <label>
-            File
-            <input
-              type="file"
-              onChange={(event) => setForm((prev) => ({ ...prev, file: event.target.files?.[0] || null }))}
-              required
-            />
-          </label>
+      <div className="patient-resource-layout">
+        <div className="patient-resource-main">
+          <form className="form-card patient-upload-form" onSubmit={handleUpload}>
+            <div className="profile-form-head patient-upload-form-head">
+              <span className="eyebrow">Documents</span>
+              <h2>Upload New Report</h2>
+              <p>Attach recent files before appointments so doctors can review them with the right context.</p>
+            </div>
 
-          <label className="span-2">
-            Description
-            <textarea
-              rows="3"
-              value={form.description}
-              onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
-            />
-          </label>
+            <div className="form-grid two-col">
+              <label>
+                Report Title
+                <input
+                  type="text"
+                  value={form.title}
+                  onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
+                  placeholder="Blood Test / X-Ray"
+                />
+              </label>
+
+              <label>
+                File
+                <input
+                  type="file"
+                  onChange={(event) =>
+                    setForm((prev) => ({ ...prev, file: event.target.files?.[0] || null }))
+                  }
+                  required
+                />
+              </label>
+
+              <label className="span-2">
+                Description
+                <textarea
+                  rows="3"
+                  value={form.description}
+                  onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
+                  placeholder="Optional details about this document"
+                />
+              </label>
+            </div>
+
+            <div className="profile-form-footer patient-upload-form-footer">
+              <p className="patient-inline-note">
+                {form.file
+                  ? `Selected file: ${form.file.name}`
+                  : "Choose a file to upload and keep it available for future consultations."}
+              </p>
+
+              <button className="btn btn-primary" type="submit" disabled={uploading}>
+                {uploading ? "Uploading..." : "Upload Report"}
+              </button>
+            </div>
+          </form>
+
+          <div className="panel patient-resource-panel">
+            <div className="patient-resource-panel-head">
+              <div>
+                <h2>Uploaded Reports</h2>
+                <p>Download previously uploaded files or review when each report was added.</p>
+              </div>
+              <span>{loading ? "..." : reports.length}</span>
+            </div>
+
+            {loading && <Loader label="Loading reports..." />}
+
+            {!loading && reports.length === 0 && (
+              <EmptyState
+                title="No reports uploaded yet"
+                message="Once you upload a document, it will appear here with its file name, upload date, and download action."
+              />
+            )}
+
+            {!loading && reports.length > 0 && (
+              <div className="patient-report-list">
+                {reports.map((report) => (
+                  <article className="patient-report-card" key={report._id}>
+                    <div className="patient-report-meta">
+                      <h3>{report.title || "Medical Report"}</h3>
+                      <p>{report.originalName}</p>
+                      <p>Uploaded {formatDateTime(report.createdAt)}</p>
+                      <p>{report.description || "No description provided for this report."}</p>
+                    </div>
+
+                    <div className="patient-report-actions">
+                      <div className="patient-chip-row">
+                        <span className="patient-chip">{formatFileSize(report.fileSize)}</span>
+                        <span className="patient-chip">{report.mimeType || "Document"}</span>
+                      </div>
+
+                      <button className="btn btn-outline" type="button" onClick={() => downloadReport(report)}>
+                        Download
+                      </button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
-        {error && <p className="form-error">{error}</p>}
-        {success && <p className="form-success">{success}</p>}
-
-        <button className="btn btn-primary" type="submit" disabled={uploading}>
-          {uploading ? "Uploading..." : "Upload Report"}
-        </button>
-      </form>
-
-      <div className="panel">
-        <h2>Uploaded Reports</h2>
-        {loading && <p>Loading reports...</p>}
-        {!loading && reports.length === 0 && <p>No reports uploaded yet.</p>}
-
-        {!loading && reports.length > 0 && (
-          <div className="stats-grid">
-            {reports.map((report) => (
-              <div className="stat-card" key={report._id}>
-                <h3>{report.title}</h3>
-                <span>{report.originalName}</span>
-                <span>{new Date(report.createdAt).toLocaleString()}</span>
-                <span>{report.description || "No description"}</span>
-                <button className="btn btn-outline" type="button" onClick={() => downloadReport(report)}>
-                  Download
-                </button>
+        <aside className="patient-resource-side">
+          <div className="panel patient-resource-summary-panel">
+            <h3>Report Summary</h3>
+            <div className="doctor-summary-list">
+              <div className="doctor-summary-item">
+                <span>Total Reports</span>
+                <strong>{loading ? "..." : reports.length}</strong>
               </div>
-            ))}
+              <div className="doctor-summary-item">
+                <span>Latest Upload</span>
+                <strong>{loading ? "Loading..." : latestUpload}</strong>
+              </div>
+              <div className="doctor-summary-item">
+                <span>Total Storage</span>
+                <strong>{loading ? "..." : formatFileSize(totalStorage)}</strong>
+              </div>
+            </div>
           </div>
-        )}
+
+          <div className="panel patient-resource-help-panel">
+            <h3>Upload Tips</h3>
+            <ul className="profile-tip-list">
+              <li>Use clear titles so each document is easy to identify later.</li>
+              <li>Upload recent reports before a consultation whenever possible.</li>
+              <li>Add a short description if the file name alone is not enough context.</li>
+            </ul>
+          </div>
+        </aside>
       </div>
     </section>
   );

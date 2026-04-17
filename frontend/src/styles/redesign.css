@@ -1982,6 +1982,161 @@ p {
   color: #a9303f;
 }
 
+.patient-payment-summary {
+  margin: -0.1rem 0 0;
+  font-size: 0.82rem;
+  color: var(--color-text-secondary);
+}
+
+.patient-payment-list {
+  display: grid;
+  gap: 0.62rem;
+}
+
+.patient-payment-item {
+  border: 1px solid var(--ui-border);
+  border-radius: 12px;
+  background: var(--ui-card-soft);
+  padding: 0.72rem;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.patient-payment-item-head,
+.patient-payment-item-foot,
+.admin-payment-card-head,
+.admin-payment-card-amount {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.7rem;
+}
+
+.patient-payment-title {
+  margin: 0;
+  font-size: 0.84rem;
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+.patient-payment-meta,
+.patient-payment-empty,
+.admin-payment-empty,
+.admin-payment-failure {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--color-text-secondary);
+}
+
+.patient-payment-item-foot strong,
+.admin-payment-card-amount strong {
+  font-size: 0.92rem;
+  color: var(--color-text);
+}
+
+.patient-payment-item-foot span {
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+}
+
+.patient-payment-failure {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #a9303f;
+}
+
+.admin-payment-panel {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.admin-payment-panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.8rem;
+}
+
+.admin-payment-panel-head p {
+  margin-top: 0.2rem;
+  font-size: 0.82rem;
+}
+
+.admin-payment-panel-head span {
+  flex-shrink: 0;
+  min-width: 64px;
+  padding: 0.32rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid var(--ui-border);
+  background: var(--ui-card-soft);
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-align: center;
+  color: var(--color-text-secondary);
+}
+
+.admin-payment-list {
+  display: grid;
+  gap: 0.75rem;
+  max-height: 960px;
+  overflow: auto;
+  padding-right: 0.15rem;
+}
+
+.admin-payment-card {
+  border: 1px solid var(--ui-border);
+  border-radius: 14px;
+  background: var(--ui-card-soft);
+  padding: 0.82rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.admin-payment-card-head h4 {
+  margin: 0;
+  font-size: 0.92rem;
+}
+
+.admin-payment-card-head p {
+  margin: 0.18rem 0 0;
+  font-size: 0.8rem;
+}
+
+.admin-payment-card-amount {
+  align-items: center;
+}
+
+.admin-payment-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.58rem;
+}
+
+.admin-payment-item {
+  border: 1px solid var(--ui-border);
+  border-radius: 11px;
+  background: #fff;
+  padding: 0.58rem 0.62rem;
+  display: grid;
+  gap: 0.18rem;
+}
+
+.admin-payment-item span {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.admin-payment-item strong {
+  font-size: 0.8rem;
+  color: var(--color-text);
+  overflow-wrap: anywhere;
+}
+
 .appointment-info-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2255,6 +2410,428 @@ p {
   gap: 0.85rem;
   position: sticky;
   top: 1rem;
+}
+
+.admin-account-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.admin-account-form-head {
+  gap: 0.45rem;
+}
+
+.admin-account-form-head .eyebrow {
+  margin-bottom: 0;
+}
+
+.admin-account-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.72rem;
+}
+
+.admin-account-summary-card {
+  border: 1px solid var(--ui-border);
+  border-radius: 14px;
+  background: linear-gradient(145deg, #ffffff 0%, #f5faff 100%);
+  padding: 0.82rem 0.88rem;
+  display: grid;
+  gap: 0.16rem;
+}
+
+.admin-account-summary-card span {
+  color: var(--color-text-secondary);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.admin-account-summary-card strong {
+  color: var(--color-text);
+  font-size: 1rem;
+}
+
+.admin-account-form-footer {
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+}
+
+.admin-account-inline-note {
+  margin: 0;
+  max-width: 48ch;
+  font-size: 0.84rem;
+}
+
+.admin-account-side {
+  gap: 0.9rem;
+}
+
+.admin-account-status-panel,
+.admin-account-help-panel {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.admin-account-status-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.admin-account-status-head h3 {
+  margin: 0 0 0.18rem;
+}
+
+.admin-account-status-head p {
+  margin: 0;
+  font-size: 0.84rem;
+}
+
+.admin-account-role-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 68px;
+  padding: 0.38rem 0.72rem;
+  border-radius: 999px;
+  background: rgba(12, 130, 92, 0.12);
+  color: #0b7a57;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.admin-account-next {
+  width: 100%;
+}
+
+.admin-account-status-panel .doctor-summary-item strong {
+  overflow-wrap: anywhere;
+}
+
+.admin-account-checklist {
+  margin: 0;
+  padding-left: 1rem;
+  display: grid;
+  gap: 0.52rem;
+}
+
+.admin-account-checklist li {
+  color: var(--color-text-secondary);
+  line-height: 1.45;
+  font-size: 0.86rem;
+}
+
+.admin-profile-form,
+.admin-profile-side,
+.admin-profile-selected-panel,
+.admin-profile-accounts-panel,
+.admin-profile-help-panel {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.admin-profile-form-head .eyebrow {
+  margin-bottom: 0;
+}
+
+.admin-profile-selected-panel {
+  padding: 0.95rem 1rem;
+}
+
+.admin-profile-grid input[readonly] {
+  background: var(--ui-card-soft);
+  color: var(--color-text-secondary);
+  cursor: default;
+}
+
+.admin-profile-form-footer {
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+}
+
+.admin-profile-account-list {
+  display: grid;
+  gap: 0.72rem;
+}
+
+.admin-profile-account-card {
+  width: 100%;
+  border: 1px solid var(--ui-border);
+  border-radius: 14px;
+  background: linear-gradient(145deg, #ffffff 0%, #f8fbff 100%);
+  padding: 0.86rem 0.92rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.8rem;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast),
+    transform var(--transition-fast), background var(--transition-fast);
+}
+
+.admin-profile-account-card:hover {
+  border-color: rgba(0, 102, 204, 0.32);
+  box-shadow: var(--ui-shadow-sm);
+  transform: translateY(-1px);
+}
+
+.admin-profile-account-card.is-selected {
+  border-color: rgba(0, 102, 204, 0.45);
+  background: linear-gradient(145deg, #f7fbff 0%, #eef6ff 100%);
+  box-shadow: var(--ui-shadow-sm);
+}
+
+.admin-profile-account-meta {
+  display: grid;
+  gap: 0.22rem;
+  min-width: 0;
+}
+
+.admin-profile-account-meta strong {
+  color: var(--color-text);
+  font-size: 0.92rem;
+}
+
+.admin-profile-account-meta span,
+.admin-profile-account-meta code {
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+}
+
+.admin-profile-account-meta code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+}
+
+.admin-profile-account-cta {
+  border: 1px solid var(--ui-border);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--color-primary);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.34rem 0.62rem;
+  white-space: nowrap;
+}
+
+.admin-profile-empty {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.patient-resource-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.8fr) minmax(270px, 1fr);
+  gap: 0.9rem;
+  align-items: start;
+}
+
+.patient-resource-main,
+.patient-resource-side,
+.patient-upload-form,
+.patient-resource-panel,
+.patient-resource-summary-panel,
+.patient-resource-help-panel,
+.patient-prescription-card,
+.patient-report-card {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.patient-resource-side {
+  position: sticky;
+  top: 1rem;
+}
+
+.patient-upload-form-head .eyebrow {
+  margin-bottom: 0;
+}
+
+.patient-upload-form-footer {
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+}
+
+.patient-inline-note {
+  margin: 0;
+  max-width: 52ch;
+  font-size: 0.84rem;
+}
+
+.patient-resource-panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.patient-resource-panel-head h2 {
+  margin: 0 0 0.2rem;
+  font-size: 1rem;
+}
+
+.patient-resource-panel-head p {
+  margin: 0;
+  font-size: 0.84rem;
+}
+
+.patient-resource-panel-head span {
+  min-width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1px solid var(--ui-border);
+  background: var(--ui-card-soft);
+  color: var(--color-text-secondary);
+  font-size: 0.76rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.patient-prescription-list,
+.patient-report-list {
+  display: grid;
+  gap: 0.72rem;
+}
+
+.patient-prescription-card,
+.patient-report-card {
+  border: 1px solid var(--ui-border);
+  border-radius: 14px;
+  background: linear-gradient(145deg, #ffffff 0%, #f8fbff 100%);
+  padding: 0.88rem;
+}
+
+.patient-prescription-card-head,
+.patient-report-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.8rem;
+}
+
+.patient-prescription-meta h3,
+.patient-report-meta h3 {
+  margin: 0 0 0.18rem;
+  font-size: 0.95rem;
+}
+
+.patient-prescription-meta p,
+.patient-report-meta p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.patient-prescription-card .doctor-summary-item strong,
+.patient-report-meta p {
+  overflow-wrap: anywhere;
+}
+
+.patient-chip-row {
+  display: flex;
+  gap: 0.42rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.patient-chip {
+  border: 1px solid var(--ui-border);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--color-text-secondary);
+  font-size: 0.74rem;
+  font-weight: 800;
+  padding: 0.32rem 0.58rem;
+}
+
+.patient-medicine-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 0.65rem;
+}
+
+.patient-medicine-item {
+  border: 1px solid var(--ui-border);
+  border-radius: 12px;
+  background: #fff;
+  padding: 0.72rem;
+  display: grid;
+  gap: 0.26rem;
+}
+
+.patient-medicine-item strong {
+  color: var(--color-text);
+  font-size: 0.88rem;
+}
+
+.patient-medicine-item span {
+  color: var(--color-primary);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.patient-medicine-item p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.patient-prescription-note {
+  border-top: 1px solid var(--ui-border);
+  padding-top: 0.75rem;
+  display: grid;
+  gap: 0.25rem;
+}
+
+.patient-prescription-note span {
+  color: var(--color-text-secondary);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.patient-prescription-note p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.84rem;
+  line-height: 1.55;
+}
+
+.patient-report-meta {
+  display: grid;
+  gap: 0.24rem;
+  min-width: 0;
+}
+
+.patient-report-actions {
+  display: grid;
+  gap: 0.65rem;
+  justify-items: end;
+  min-width: 180px;
+}
+
+.patient-report-actions .btn {
+  min-width: 150px;
 }
 
 .profile-progress-card p {
@@ -2853,11 +3430,13 @@ p {
   .doctor-home-layout,
   .availability-layout,
   .doctor-prescription-layout,
+  .patient-resource-layout,
   .profile-layout,
   .booking-layout {
     grid-template-columns: 1fr;
   }
 
+  .patient-resource-side,
   .booking-side,
   .profile-side,
   .availability-side,
@@ -3045,6 +3624,50 @@ p {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .admin-account-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-account-status-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .admin-profile-account-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .patient-resource-panel-head,
+  .patient-prescription-card-head,
+  .patient-report-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .patient-payment-item-head,
+  .patient-payment-item-foot,
+  .admin-payment-panel-head,
+  .admin-payment-card-head,
+  .admin-payment-card-amount {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .admin-payment-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .patient-chip-row {
+    justify-content: flex-start;
+  }
+
+  .patient-report-actions {
+    width: 100%;
+    justify-items: stretch;
+    min-width: 0;
+  }
+
   .details-field {
     grid-template-columns: 1fr;
   }
@@ -3060,6 +3683,15 @@ p {
 }
 
 @media (max-width: 620px) {
+  .admin-account-form-footer .btn,
+  .admin-account-next,
+  .admin-profile-form-footer .btn,
+  .admin-profile-empty .btn,
+  .patient-upload-form-footer .btn,
+  .patient-report-actions .btn {
+    width: 100%;
+  }
+
   .site-brand__text {
     display: none;
   }

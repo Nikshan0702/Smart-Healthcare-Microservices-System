@@ -15,6 +15,7 @@ const stripTrailingSlash = (url) => url.replace(/\/+$/, "");
 const authTarget = `${stripTrailingSlash(process.env.AUTH_SERVICE_URL || "http://auth-service:5001")}/auth`;
 const doctorTarget = `${stripTrailingSlash(process.env.DOCTOR_SERVICE_URL || "http://doctor-service:5002")}/doctors`;
 const appointmentTarget = `${stripTrailingSlash(process.env.APPOINTMENT_SERVICE_URL || "http://appointment-service:5003")}/appointments`;
+const telemedicineTarget = `${stripTrailingSlash(process.env.TELEMEDICINE_SERVICE_URL || "http://telemedicine-service:5007")}/telemedicine`;
 const patientTarget = `${stripTrailingSlash(process.env.PATIENT_SERVICE_URL || "http://patient-service:5004")}/patients`;
 const paymentTarget = `${stripTrailingSlash(process.env.PAYMENT_SERVICE_URL || "http://payment-service:5005")}/payments`;
 const notificationTarget = `${stripTrailingSlash(process.env.NOTIFICATION_SERVICE_URL || "http://notification-service:5006")}/notifications`;
@@ -27,6 +28,7 @@ app.get("/", (req, res) => {
       auth: "/auth",
       doctors: "/doctors",
       appointments: "/appointments",
+      telemedicine: "/telemedicine",
       patients: "/patients",
       payments: "/payments",
       notifications: "/notifications"
@@ -73,6 +75,21 @@ app.use(
     onError: (err, req, res) => {
       res.status(502).json({
         message: "Appointment service is unavailable",
+        error: err.message
+      });
+    }
+  })
+);
+
+app.use(
+  "/telemedicine",
+  createProxyMiddleware({
+    target: telemedicineTarget,
+    changeOrigin: true,
+    proxyTimeout: 5000,
+    onError: (err, req, res) => {
+      res.status(502).json({
+        message: "Telemedicine service is unavailable",
         error: err.message
       });
     }

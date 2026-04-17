@@ -1,6 +1,16 @@
 import api from "./api";
 
 export const paymentService = {
+  async createCheckoutSession(payload) {
+    const { data } = await api.post("/payments/checkout-session", payload);
+    return data;
+  },
+
+  async getCheckoutSessionStatus(sessionId) {
+    const { data } = await api.get(`/payments/checkout-session/${sessionId}`);
+    return data;
+  },
+
   async payForAppointment(payload) {
     const { data } = await api.post("/payments/pay", payload);
     return data;
@@ -8,6 +18,11 @@ export const paymentService = {
 
   async getMyPayments() {
     const { data } = await api.get("/payments/my");
+    return data;
+  },
+
+  async getAllPayments() {
+    const { data } = await api.get("/payments");
     return data;
   },
 

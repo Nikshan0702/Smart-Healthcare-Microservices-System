@@ -2,6 +2,26 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
+const normalizeString = (value = "") => value.toString().trim();
+const normalizeEmail = (value = "") => normalizeString(value).toLowerCase();
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const isValidEmail = (value = "") => EMAIL_REGEX.test(normalizeString(value));
+
+const isValidPassword = (value = "") => {
+  if (typeof value !== "string") return false;
+  const trimmed = value.trim();
+  return trimmed.length >= 6 && trimmed.length <= 72;
+};
+
+const normalizeName = (value = "") => normalizeString(value).replace(/\s+/g, " ");
+
+const isValidName = (value = "") => {
+  const name = normalizeName(value);
+  return name.length >= 2 && name.length <= 80;
+};
+
 const createToken = (user) => {
   return jwt.sign(
     {
@@ -32,7 +52,19 @@ const registerPatient = async (req, res) => {
       return res.status(400).json({ message: "name, email and password are required" });
     }
 
-    const normalizedEmail = email.toLowerCase().trim();
+    if (!isValidName(name)) {
+      return res.status(400).json({ message: "name must be between 2 and 80 characters" });
+    }
+
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ message: "email must be a valid email address" });
+    }
+
+    if (!isValidPassword(password)) {
+      return res.status(400).json({ message: "password must be between 6 and 72 characters" });
+    }
+
+    const normalizedEmail = normalizeEmail(email);
     const existingUser = await User.findOne({ email: normalizedEmail });
 
     if (existingUser) {
@@ -41,7 +73,7 @@ const registerPatient = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await User.create({
-      name,
+      name: normalizeName(name),
       email: normalizedEmail,
       password: hashedPassword,
       role: "PATIENT"
@@ -67,7 +99,15 @@ const loginUser = async (req, res) => {
       return res.status(400).json({ message: "email and password are required" });
     }
 
-    const normalizedEmail = email.toLowerCase().trim();
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ message: "email must be a valid email address" });
+    }
+
+    if (typeof password !== "string" || !password.trim()) {
+      return res.status(400).json({ message: "password must be a non-empty string" });
+    }
+
+    const normalizedEmail = normalizeEmail(email);
     const user = await User.findOne({ email: normalizedEmail });
 
     if (!user) {
@@ -106,6 +146,16 @@ const getMe = async (req, res) => {
   }
 };
 
+const getDoctorAccounts = async (req, res) => {
+  try {
+    const doctorUsers = await User.find({ role: "DOCTOR" }).sort({ createdAt: -1 });
+
+    return res.status(200).json(doctorUsers.map(sanitizeUser));
+  } catch (error) {
+    return res.status(500).json({ message: "Server error while fetching doctor accounts" });
+  }
+};
+
 const createDoctorAccount = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -114,7 +164,19 @@ const createDoctorAccount = async (req, res) => {
       return res.status(400).json({ message: "name, email and password are required" });
     }
 
-    const normalizedEmail = email.toLowerCase().trim();
+    if (!isValidName(name)) {
+      return res.status(400).json({ message: "name must be between 2 and 80 characters" });
+    }
+
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ message: "email must be a valid email address" });
+    }
+
+    if (!isValidPassword(password)) {
+      return res.status(400).json({ message: "password must be between 6 and 72 characters" });
+    }
+
+    const normalizedEmail = normalizeEmail(email);
     const existingUser = await User.findOne({ email: normalizedEmail });
 
     if (existingUser) {
@@ -123,7 +185,7 @@ const createDoctorAccount = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const doctorUser = await User.create({
-      name,
+      name: normalizeName(name),
       email: normalizedEmail,
       password: hashedPassword,
       role: "DOCTOR"
@@ -146,7 +208,19 @@ const createAdminAccount = async (req, res) => {
       return res.status(400).json({ message: "name, email and password are required" });
     }
 
-    const normalizedEmail = email.toLowerCase().trim();
+    if (!isValidName(name)) {
+      return res.status(400).json({ message: "name must be between 2 and 80 characters" });
+    }
+
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ message: "email must be a valid email address" });
+    }
+
+    if (!isValidPassword(password)) {
+      return res.status(400).json({ message: "password must be between 6 and 72 characters" });
+    }
+
+    const normalizedEmail = normalizeEmail(email);
     const existingUser = await User.findOne({ email: normalizedEmail });
 
     if (existingUser) {
@@ -155,7 +229,7 @@ const createAdminAccount = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const adminUser = await User.create({
-      name,
+      name: normalizeName(name),
       email: normalizedEmail,
       password: hashedPassword,
       role: "ADMIN"
@@ -174,6 +248,7 @@ module.exports = {
   registerPatient,
   loginUser,
   getMe,
+  getDoctorAccounts,
   createDoctorAccount,
   createAdminAccount
 };

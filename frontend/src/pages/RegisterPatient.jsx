@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { roleHomePath, useAuth } from "../context/AuthContext";
 import { authService } from "../services/authService";
+import { isValidEmail, isValidPassword, normalizeName, normalizeString } from "../utils/validators";
 
 function RegisterPatient() {
   const navigate = useNavigate();
@@ -25,6 +26,22 @@ function RegisterPatient() {
     event.preventDefault();
     setError("");
 
+    const normalizedName = normalizeName(form.name);
+    if (normalizedName.length < 2 || normalizedName.length > 80) {
+      setError("Name must be between 2 and 80 characters.");
+      return;
+    }
+
+    if (!isValidEmail(form.email)) {
+      setError("Email must be a valid email address.");
+      return;
+    }
+
+    if (!isValidPassword(form.password)) {
+      setError("Password must be between 6 and 72 characters.");
+      return;
+    }
+
     if (form.password !== form.confirmPassword) {
       setError("Passwords do not match.");
       return;
@@ -34,8 +51,8 @@ function RegisterPatient() {
 
     try {
       const data = await authService.registerPatient({
-        name: form.name,
-        email: form.email,
+        name: normalizedName,
+        email: normalizeString(form.email).toLowerCase(),
         password: form.password
       });
 
