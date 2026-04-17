@@ -1,0 +1,14 @@
+services:
+  doctor-service:
+    image: node:20-alpine
+    container_name: doctor-service
+    working_dir: /app
+    volumes:
+      - ./:/app
+    command: sh -c "npm install && npm start"
+    ports:
+      - "5002:5002"
+    environment:
+      PORT: 5002
+      MONGO_URI: mongodb://host.docker.internal:27017/healthcare_doctor
+      JWT_SECRET: supersecretkey
