@@ -47,7 +47,6 @@ lerna-debug.log*
 *.sw?
 
 # Temp: hide unrelated services while committing payment-service
-/services/patient-service/
 /frontend/
 /gateway/
 seed-doctors.js
