@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import PageHeader from "../../components/PageHeader";
 import { authService } from "../../services/authService";
+import { isValidEmail, isValidPassword, normalizeName, normalizeString } from "../../utils/validators";
 
 function CreateDoctorAccount() {
   const [form, setForm] = useState({ name: "", email: "", password: "" });
@@ -18,10 +19,31 @@ function CreateDoctorAccount() {
     event.preventDefault();
     setError("");
     setCreatedDoctor(null);
+
+    const normalizedName = normalizeName(form.name);
+    if (normalizedName.length < 2 || normalizedName.length > 80) {
+      setError("Doctor name must be between 2 and 80 characters.");
+      return;
+    }
+
+    if (!isValidEmail(form.email)) {
+      setError("Doctor email must be a valid email address.");
+      return;
+    }
+
+    if (!isValidPassword(form.password)) {
+      setError("Temporary password must be between 6 and 72 characters.");
+      return;
+    }
+
     setSaving(true);
 
     try {
-      const data = await authService.createDoctorAccount(form);
+      const data = await authService.createDoctorAccount({
+        name: normalizedName,
+        email: normalizeString(form.email).toLowerCase(),
+        password: form.password
+      });
       setCreatedDoctor(data.user);
       setForm({ name: "", email: "", password: "" });
     } catch (err) {

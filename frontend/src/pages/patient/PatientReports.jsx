@@ -3,6 +3,7 @@ import EmptyState from "../../components/EmptyState";
 import Loader from "../../components/Loader";
 import PageHeader from "../../components/PageHeader";
 import { patientService } from "../../services/patientService";
+import { normalizeString } from "../../utils/validators";
 
 const formatDateTime = (value) => {
   const date = new Date(value);
@@ -70,9 +71,26 @@ function PatientReports() {
       return;
     }
 
+    if (Number(form.file.size) > 5 * 1024 * 1024) {
+      setError("File size must be 5MB or less.");
+      return;
+    }
+
+    const title = normalizeString(form.title || "") || "Medical Report";
+    if (title.length < 2 || title.length > 80) {
+      setError("Title must be between 2 and 80 characters.");
+      return;
+    }
+
+    const description = normalizeString(form.description || "");
+    if (description.length > 500) {
+      setError("Description must be 500 characters or less.");
+      return;
+    }
+
     const payload = new FormData();
-    payload.append("title", form.title);
-    payload.append("description", form.description);
+    payload.append("title", title);
+    payload.append("description", description);
     payload.append("file", form.file);
 
     setUploading(true);

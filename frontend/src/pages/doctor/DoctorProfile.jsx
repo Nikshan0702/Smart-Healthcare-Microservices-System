@@ -3,6 +3,7 @@ import EmptyState from "../../components/EmptyState";
 import Loader from "../../components/Loader";
 import PageHeader from "../../components/PageHeader";
 import { doctorService } from "../../services/doctorService";
+import { normalizeString } from "../../utils/validators";
 
 function DoctorProfile() {
   const [form, setForm] = useState({
@@ -54,11 +55,39 @@ function DoctorProfile() {
     setSaving(true);
 
     try {
+      const specialization = normalizeString(form.specialization);
+      if (specialization.length < 2 || specialization.length > 60) {
+        setError("Specialization must be between 2 and 60 characters.");
+        setSaving(false);
+        return;
+      }
+
+      const experience = Number(form.experience);
+      if (!Number.isFinite(experience) || experience < 0) {
+        setError("Experience must be a non-negative number.");
+        setSaving(false);
+        return;
+      }
+
+      const hospital = normalizeString(form.hospital);
+      if (hospital.length > 120) {
+        setError("Hospital must be 120 characters or less.");
+        setSaving(false);
+        return;
+      }
+
+      const consultationFee = Number(form.consultationFee);
+      if (!Number.isFinite(consultationFee) || consultationFee < 0) {
+        setError("Consultation fee must be a non-negative number.");
+        setSaving(false);
+        return;
+      }
+
       const payload = {
-        specialization: form.specialization,
-        experience: Number(form.experience),
-        hospital: form.hospital,
-        consultationFee: Number(form.consultationFee)
+        specialization,
+        experience,
+        hospital,
+        consultationFee
       };
       const data = await doctorService.updateMyProfile(payload);
       setSuccess(data.message || "Profile updated successfully.");

@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import PageHeader from "../../components/PageHeader";
 import { appointmentService } from "../../services/appointmentService";
 import { doctorService } from "../../services/doctorService";
+import { normalizeString } from "../../utils/validators";
 
 const getTodayLocalDate = () => {
   const now = new Date();
@@ -113,15 +114,31 @@ function BookAppointment() {
     setError("");
     setSuccess("");
 
+    if (!form.doctorProfileId) {
+      setError("Select a doctor to continue.");
+      return;
+    }
+
+    if (!form.appointmentDate) {
+      setError("Select an appointment date to continue.");
+      return;
+    }
+
     if (!form.timeSlot) {
       setError("Select a time slot to continue.");
+      return;
+    }
+
+    const reason = normalizeString(form.reason);
+    if (reason.length < 5 || reason.length > 500) {
+      setError("Consultation reason must be between 5 and 500 characters.");
       return;
     }
 
     setSaving(true);
 
     try {
-      const data = await appointmentService.bookAppointment(form);
+      const data = await appointmentService.bookAppointment({ ...form, reason });
       setSuccess(data.message || "Appointment booked successfully.");
       setForm((prev) => ({ ...prev, reason: "" }));
       await loadAvailableSlots(form.doctorProfileId, form.appointmentDate);

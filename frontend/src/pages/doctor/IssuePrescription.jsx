@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import PageHeader from "../../components/PageHeader";
 import { patientService } from "../../services/patientService";
+import { isMongoObjectId, normalizeString } from "../../utils/validators";
 
 const emptyMedicine = { name: "", dosage: "", instructions: "" };
 
@@ -96,18 +97,58 @@ function IssuePrescription() {
       return;
     }
 
+    const patientId = normalizeString(form.patientId);
+    if (!isMongoObjectId(patientId)) {
+      setError("Patient ID is invalid.");
+      return;
+    }
+
+    const appointmentId = normalizeString(form.appointmentId);
+    if (appointmentId && !isMongoObjectId(appointmentId)) {
+      setError("Appointment ID is invalid.");
+      return;
+    }
+
+    const notes = normalizeString(form.notes);
+    if (notes.length > 2000) {
+      setError("Notes must be 2000 characters or less.");
+      return;
+    }
+
+    const normalizedMedicines = form.medicines.map((medicine) => ({
+      name: normalizeString(medicine.name),
+      dosage: normalizeString(medicine.dosage),
+      instructions: normalizeString(medicine.instructions)
+    }));
+
+    const filteredMedicines = normalizedMedicines.filter((medicine) => medicine.name);
+    if (filteredMedicines.length === 0) {
+      setError("Add at least one medicine name.");
+      return;
+    }
+
+    if (filteredMedicines.length > 30) {
+      setError("Medicines list must contain 30 items or less.");
+      return;
+    }
+
+    const hasOversizedMedicine = filteredMedicines.some(
+      (medicine) => medicine.name.length > 80 || medicine.dosage.length > 120 || medicine.instructions.length > 240
+    );
+
+    if (hasOversizedMedicine) {
+      setError("Medicine fields are too long.");
+      return;
+    }
+
     setSaving(true);
 
     try {
       const payload = {
-        patientId: form.patientId.trim(),
-        appointmentId: form.appointmentId.trim(),
-        notes: form.notes.trim(),
-        medicines: form.medicines.map((medicine) => ({
-          name: medicine.name.trim(),
-          dosage: medicine.dosage.trim(),
-          instructions: medicine.instructions.trim()
-        }))
+        patientId,
+        appointmentId,
+        notes,
+        medicines: filteredMedicines
       };
 
       const data = await patientService.issuePrescription(payload);
