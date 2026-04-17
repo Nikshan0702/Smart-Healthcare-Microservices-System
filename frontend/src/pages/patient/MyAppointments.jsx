@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import PageHeader from "../../components/PageHeader";
 import { appointmentService } from "../../services/appointmentService";
 import { paymentService } from "../../services/paymentService";
+import { isValidDateKey, normalizeString } from "../../utils/validators";
 
 const statusOptions = ["ALL", "PENDING", "ACCEPTED", "REJECTED", "CANCELLED", "COMPLETED"];
 
@@ -142,8 +143,29 @@ function MyAppointments() {
     setError("");
     setSuccess("");
 
+    const reason = normalizeString(editForm.reason);
+    if (reason.length < 5 || reason.length > 500) {
+      setError("Reason must be between 5 and 500 characters.");
+      return;
+    }
+
+    if (!isValidDateKey(editForm.appointmentDate)) {
+      setError("Appointment date must be a valid date.");
+      return;
+    }
+
+    const timeSlot = normalizeString(editForm.timeSlot);
+    if (timeSlot.length < 2 || timeSlot.length > 40) {
+      setError("Time slot must be between 2 and 40 characters.");
+      return;
+    }
+
     try {
-      await appointmentService.updateMyAppointment(editingId, editForm);
+      await appointmentService.updateMyAppointment(editingId, {
+        ...editForm,
+        reason,
+        timeSlot
+      });
       setSuccess("Appointment updated successfully.");
       setEditingId("");
       loadData();
@@ -336,7 +358,7 @@ function MyAppointments() {
                       </button>
                     )}
 
-                    {appointment.status === "ACCEPTED" && appointment.meetingLink && (
+                    {appointment.status === "ACCEPTED" && paymentStatus === "PAID" && appointment.meetingLink && (
                       <a className="btn btn-primary" href={appointment.meetingLink} target="_blank" rel="noreferrer">
                         Join Consultation
                       </a>

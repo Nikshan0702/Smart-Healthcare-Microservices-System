@@ -12,6 +12,14 @@ const paymentSchema = new mongoose.Schema(
       required: true,
       index: true
     },
+    patientName: {
+      type: String,
+      default: ""
+    },
+    patientEmail: {
+      type: String,
+      default: ""
+    },
     amount: {
       type: Number,
       required: true,
@@ -31,6 +39,23 @@ const paymentSchema = new mongoose.Schema(
       default: "PENDING"
     },
     transactionRef: {
+      type: String,
+      default: ""
+    },
+    stripeCheckoutSessionId: {
+      type: String,
+      default: "",
+      index: true
+    },
+    stripePaymentIntentId: {
+      type: String,
+      default: ""
+    },
+    paidAt: {
+      type: Date,
+      default: null
+    },
+    failureReason: {
       type: String,
       default: ""
     }

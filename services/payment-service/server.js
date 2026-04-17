@@ -4,14 +4,16 @@ const dotenv = require("dotenv");
 const cors = require("cors");
 const morgan = require("morgan");
 const paymentRoutes = require("./routes/paymentRoutes");
+const { handleStripeWebhook } = require("./controllers/paymentController");
 
 dotenv.config();
 
 const app = express();
 
 app.use(cors());
-app.use(express.json());
 app.use(morgan("dev"));
+app.post("/payments/webhook", express.raw({ type: "application/json" }), handleStripeWebhook);
+app.use(express.json());
 
 app.get("/", (req, res) => {
   res.status(200).json({
