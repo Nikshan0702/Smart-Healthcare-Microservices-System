@@ -1743,3 +1743,23 @@
     padding: 0.6rem 0.7rem;
   }
 }
+
+/* Add to your CSS file for dashboard-specific doctors page styling */
+.dashboard-doctors-page {
+  padding: 2rem;
+  background: var(--bg-light, #f8fafc);
+  min-height: 100vh;
+}
+
+.dashboard-doctors-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Ensure doctors grid works well within dashboard layout */
+.dashboard-doctors-page .doctor-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}

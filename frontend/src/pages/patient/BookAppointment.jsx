@@ -11,6 +11,13 @@ const getTodayLocalDate = () => {
   return localDate.toISOString().slice(0, 10);
 };
 
+const getNextAvailableDate = (currentDate = getTodayLocalDate()) => {
+  const date = new Date(currentDate);
+  date.setDate(date.getDate() + 1);
+  const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return localDate.toISOString().slice(0, 10);
+};
+
 const formatAppointmentDate = (value) => {
   if (!value) return "Not selected";
   const parsed = new Date(`${value}T00:00:00`);
@@ -36,6 +43,7 @@ function BookAppointment() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [isAutoSelecting, setIsAutoSelecting] = useState(false);
   const [form, setForm] = useState({
     doctorProfileId: preselectedDoctorId,
     appointmentDate: "",
@@ -92,9 +100,76 @@ function BookAppointment() {
     }
   }, []);
 
+  // Auto-select next available date and time when doctor is selected
+  const autoSelectNextAvailableSlot = useCallback(async (doctorId) => {
+    if (!doctorId) return;
+
+    setIsAutoSelecting(true);
+    let currentDate = getTodayLocalDate();
+    let maxAttempts = 30; // Prevent infinite loop, check up to 30 days ahead
+    let attempts = 0;
+    let foundSlot = false;
+
+    while (attempts < maxAttempts && !foundSlot) {
+      // Move to next day
+      currentDate = getNextAvailableDate(currentDate);
+      
+      try {
+        const data = await appointmentService.getAvailableSlots({ 
+          doctorProfileId: doctorId, 
+          appointmentDate: currentDate 
+        });
+        
+        const slots = Array.isArray(data.availableSlots) ? data.availableSlots : [];
+        
+        if (slots.length > 0) {
+          // Found available slots
+          setForm((prev) => ({
+            ...prev,
+            appointmentDate: currentDate,
+            timeSlot: slots[0] // Select the first available slot
+          }));
+          setAvailableSlots(slots);
+          setSlotError("");
+          foundSlot = true;
+          break;
+        }
+      } catch (err) {
+        // If error occurs, continue to next date
+        console.log(`No slots found for ${currentDate}`);
+      }
+      
+      attempts++;
+    }
+
+    if (!foundSlot) {
+      // No slots found in the next 30 days
+      setSlotError("No available slots found for this doctor in the coming weeks. Please try a different doctor or date.");
+      setAvailableSlots([]);
+      setForm((prev) => ({ ...prev, timeSlot: "" }));
+    }
+
+    setIsAutoSelecting(false);
+  }, []);
+
+  // Trigger auto-selection when doctor changes
   useEffect(() => {
-    loadAvailableSlots(form.doctorProfileId, form.appointmentDate);
-  }, [form.doctorProfileId, form.appointmentDate, loadAvailableSlots]);
+    if (form.doctorProfileId) {
+      autoSelectNextAvailableSlot(form.doctorProfileId);
+    } else {
+      // Reset date and time if no doctor selected
+      setForm((prev) => ({ ...prev, appointmentDate: "", timeSlot: "" }));
+      setAvailableSlots([]);
+      setSlotError("");
+    }
+  }, [form.doctorProfileId, autoSelectNextAvailableSlot]);
+
+  // Load slots when date changes (manual date selection)
+  useEffect(() => {
+    if (form.doctorProfileId && form.appointmentDate && !isAutoSelecting) {
+      loadAvailableSlots(form.doctorProfileId, form.appointmentDate);
+    }
+  }, [form.doctorProfileId, form.appointmentDate, loadAvailableSlots, isAutoSelecting]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -107,6 +182,13 @@ function BookAppointment() {
     setError("");
     setSuccess("");
     setForm((prev) => ({ ...prev, timeSlot: slot }));
+  };
+
+  const handleDateChange = (event) => {
+    const newDate = event.target.value;
+    setError("");
+    setSuccess("");
+    setForm((prev) => ({ ...prev, appointmentDate: newDate, timeSlot: "" }));
   };
 
   const handleSubmit = async (event) => {
@@ -141,6 +223,7 @@ function BookAppointment() {
       const data = await appointmentService.bookAppointment({ ...form, reason });
       setSuccess(data.message || "Appointment booked successfully.");
       setForm((prev) => ({ ...prev, reason: "" }));
+      // Reload slots for the same date after booking
       await loadAvailableSlots(form.doctorProfileId, form.appointmentDate);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to book appointment.");
@@ -150,8 +233,14 @@ function BookAppointment() {
   };
 
   const slotStatusText = useMemo(() => {
-    if (!form.doctorProfileId || !form.appointmentDate) {
-      return "Choose doctor and date to view slots";
+    if (isAutoSelecting) {
+      return "Finding next available slot...";
+    }
+    if (!form.doctorProfileId) {
+      return "Select a doctor to view slots";
+    }
+    if (!form.appointmentDate) {
+      return "Auto-selecting next available date...";
     }
     if (loadingSlots) {
       return "Checking slot availability...";
@@ -163,7 +252,7 @@ function BookAppointment() {
       return "No slots available for this day";
     }
     return `${availableSlots.length} slot${availableSlots.length === 1 ? "" : "s"} available`;
-  }, [form.doctorProfileId, form.appointmentDate, loadingSlots, slotError, availableSlots.length]);
+  }, [form.doctorProfileId, form.appointmentDate, loadingSlots, slotError, availableSlots.length, isAutoSelecting]);
 
   return (
     <section className="dashboard-page book-appointment-page">
@@ -189,7 +278,7 @@ function BookAppointment() {
                 value={form.doctorProfileId}
                 onChange={handleChange}
                 required
-                disabled={loadingDoctors}
+                disabled={loadingDoctors || isAutoSelecting}
               >
                 <option value="">
                   {loadingDoctors ? "Loading doctors..." : "Select a doctor"}
@@ -208,10 +297,17 @@ function BookAppointment() {
                 type="date"
                 name="appointmentDate"
                 value={form.appointmentDate}
-                onChange={handleChange}
+                onChange={handleDateChange}
                 min={minBookingDate}
                 required
+                disabled={isAutoSelecting}
               />
+              {form.appointmentDate && !isAutoSelecting && (
+                <small className="date-hint">You can change the date manually if needed</small>
+              )}
+              {isAutoSelecting && (
+                <small className="auto-select-hint">Finding best available date...</small>
+              )}
             </label>
 
             <div className="booking-slot-meta">
@@ -223,8 +319,10 @@ function BookAppointment() {
               <p className="booking-field-label">Time Slot</p>
               <input type="hidden" name="timeSlot" value={form.timeSlot} />
 
-              {!form.doctorProfileId || !form.appointmentDate ? (
-                <div className="slot-grid-empty">Select a doctor and date to load slots.</div>
+              {!form.doctorProfileId ? (
+                <div className="slot-grid-empty">Select a doctor to load slots.</div>
+              ) : isAutoSelecting ? (
+                <div className="slot-grid-empty">Finding next available slot...</div>
               ) : loadingSlots ? (
                 <div className="slot-grid-empty">Loading available slots...</div>
               ) : availableSlots.length === 0 ? (
@@ -264,8 +362,16 @@ function BookAppointment() {
           {success && <p className="form-success">{success}</p>}
 
           <div className="booking-footer">
-            <p className="booking-note">Your selected slot is temporarily reserved once booking is submitted.</p>
-            <button className="btn btn-primary booking-submit-btn" type="submit" disabled={saving || !form.timeSlot}>
+            <p className="booking-note">
+              {form.timeSlot 
+                ? "Your selected slot is temporarily reserved once booking is submitted." 
+                : "Please select a time slot to continue."}
+            </p>
+            <button 
+              className="btn btn-primary booking-submit-btn" 
+              type="submit" 
+              disabled={saving || !form.timeSlot || isAutoSelecting}
+            >
               {saving ? "Booking..." : "Confirm Appointment"}
             </button>
           </div>
@@ -291,12 +397,13 @@ function BookAppointment() {
                 <span className="booking-summary-label">Date</span>
                 <span className={form.appointmentDate ? "booking-summary-value" : "booking-summary-value booking-summary-value--muted"}>
                   {formatAppointmentDate(form.appointmentDate)}
+                  {isAutoSelecting && " (Finding...)"}
                 </span>
               </div>
               <div className="booking-summary-row">
                 <span className="booking-summary-label">Time Slot</span>
                 <span className={form.timeSlot ? "booking-summary-value" : "booking-summary-value booking-summary-value--muted"}>
-                  {form.timeSlot || "Not selected"}
+                  {form.timeSlot || (isAutoSelecting ? "Finding..." : "Not selected")}
                 </span>
               </div>
               <div className="booking-summary-row">
@@ -314,6 +421,7 @@ function BookAppointment() {
               <li>Keep your reason brief and medically relevant.</li>
               <li>Choose a slot you can definitely attend.</li>
               <li>You can manage booking status from My Appointments.</li>
+              <li>The next available date is automatically selected for you.</li>
             </ul>
           </div>
         </aside>

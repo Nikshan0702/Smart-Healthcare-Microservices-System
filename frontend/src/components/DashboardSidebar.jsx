@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 const linksByRole = {
   PATIENT: [
     { to: "/patient/dashboard", label: "Dashboard", short: "DB" },
-    { to: "/patient/book-appointment", label: "Book Appointment", short: "BK" },
+    { to: "/patient/doctors", label: "Book Appointment", short: "BK" },
     { to: "/patient/appointments", label: "My Appointments", short: "AP" },
     { to: "/patient/profile", label: "My Profile", short: "PF" },
     { to: "/patient/reports", label: "My Reports", short: "RP" },

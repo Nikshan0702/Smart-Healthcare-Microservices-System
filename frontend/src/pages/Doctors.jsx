@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import { useLocation } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import DoctorCard from "../components/DoctorCard";
 import EmptyState from "../components/EmptyState";
 import Loader from "../components/Loader";
@@ -48,6 +50,14 @@ function Doctors() {
   const [error, setError] = useState("");
   const [doctors, setDoctors] = useState([]);
   const [allSpecializations, setAllSpecializations] = useState([]);
+  
+  const { user } = useAuth();
+  const location = useLocation();
+  
+  // Check if we're in dashboard context (patient/doctor routes)
+  const isInDashboard = location.pathname.includes('/patient/') || 
+                        location.pathname.includes('/doctor/') || 
+                        location.pathname.includes('/admin/');
 
   const extractSpecializations = (data) => {
     const unique = new Set();
@@ -123,9 +133,14 @@ function Doctors() {
     loadDoctors(specialization);
   };
 
+  // Apply different styling based on whether sidebar is present
+  const sectionClassName = isInDashboard 
+    ? "doctors-page dashboard-doctors-page" 
+    : "section section-soft doctors-page";
+
   return (
-    <section className="section section-soft doctors-page">
-      <div className="container">
+    <section className={sectionClassName}>
+      <div className={isInDashboard ? "dashboard-doctors-container" : "container"}>
         <form className="search-panel doctors-search-panel" onSubmit={handleSearch}>
           <div className="doctors-search-main">
             <label className="doctors-search-input-wrap" htmlFor="doctor-search-input">

@@ -46,8 +46,7 @@ lerna-debug.log*
 *.sln
 *.sw?
 
-# Temp: hide unrelated services while committing payment-service
-/frontend/
+# Temp: hide unrelated services 
 /gateway/
 seed-doctors.js
 DOCTOR_SETUP.md
@@ -56,8 +55,7 @@ SERVICE_TEST_RESULTS.md
 
 # Temp: ignore other k8s manifests; keep payment ones visible
 /k8s/*
-!/k8s/payment-deployment.yaml
-!/k8s/payment-service.yaml
+
 
 # Temp: ignore root packages and readme while focusing on payment service
 /package.json

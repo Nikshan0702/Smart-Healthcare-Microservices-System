@@ -76,6 +76,7 @@ export default function AppRouter() {
             <Route path="/patient/profile" element={<PatientProfile />} />
             <Route path="/patient/reports" element={<PatientReports />} />
             <Route path="/patient/prescriptions" element={<PatientPrescriptions />} />
+            <Route path="/patient/doctors" element={<Doctors />} />
           </Route>
 
           <Route element={<RoleGuard allowedRoles={["DOCTOR"]} />}>
