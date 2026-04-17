@@ -3,6 +3,7 @@ const {
   registerPatient,
   loginUser,
   getMe,
+  getDoctorAccounts,
   createDoctorAccount,
   createAdminAccount
 } = require("../controllers/authController");
@@ -13,6 +14,7 @@ const router = express.Router();
 router.post("/register", registerPatient);
 router.post("/login", loginUser);
 router.get("/me", authenticate, getMe);
+router.get("/doctor-accounts", authenticate, authorize("ADMIN"), getDoctorAccounts);
 router.post("/create-doctor", authenticate, authorize("ADMIN"), createDoctorAccount);
 
 // Simple helper route to seed an admin account.

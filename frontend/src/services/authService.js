@@ -16,6 +16,11 @@ export const authService = {
     return data;
   },
 
+  async getDoctorAccounts() {
+    const { data } = await api.get("/auth/doctor-accounts");
+    return data;
+  },
+
   async createDoctorAccount(payload) {
     const { data } = await api.post("/auth/create-doctor", payload);
     return data;
