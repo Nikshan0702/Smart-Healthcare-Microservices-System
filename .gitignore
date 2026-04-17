@@ -47,7 +47,6 @@ lerna-debug.log*
 *.sw?
 
 # Temp: hide unrelated services while committing payment-service
-/services/auth-service/
 /services/doctor-service/
 /services/patient-service/
 /frontend/
