@@ -164,26 +164,6 @@ npm run start --prefix services/telemedicine-service
 npm run preview --prefix frontend
 ```
 
-### Service command reference
-
-| Component | Dev command | Start command |
-| --- | --- | --- |
-| Gateway | `npm run dev --prefix gateway` | `npm run start --prefix gateway` |
-| Auth Service | `npm run dev --prefix services/auth-service` | `npm run start --prefix services/auth-service` |
-| Doctor Service | `npm run dev --prefix services/doctor-service` | `npm run start --prefix services/doctor-service` |
-| Appointment Service | `npm run dev --prefix services/appointment-service` | `npm run start --prefix services/appointment-service` |
-| Patient Service | `npm run dev --prefix services/patient-service` | `npm run start --prefix services/patient-service` |
-| Payment Service | `npm run dev --prefix services/payment-service` | `npm run start --prefix services/payment-service` |
-| Notification Service | `npm run dev --prefix services/notification-service` | `npm run start --prefix services/notification-service` |
-| Telemedicine Service | `npm run dev --prefix services/telemedicine-service` | `npm run start --prefix services/telemedicine-service` |
-| Frontend | `npm run dev --prefix frontend` | `npm run preview --prefix frontend` |
-
-## Seed command
-
-```bash
-node seed-doctors.js
-```
-
 Typical demo credentials:
 
 - Admin: `admin@hospital.com / admin123`

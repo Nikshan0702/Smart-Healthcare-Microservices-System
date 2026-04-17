@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: appointment-service
+  labels:
+    app: appointment-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: appointment-service
+  template:
+    metadata:
+      labels:
+        app: appointment-service
+    spec:
+      containers:
+        - name: appointment-service
+          image: smart-healthcare-appointment-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5003
+          env:
+            - name: PORT
+              value: "5003"
+            - name: MONGO_URI
+              value: "mongodb://mongo:27017/healthcare_appointments"
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: JWT_SECRET
+            - name: DOCTOR_SERVICE_URL
+              value: "http://doctor-service:5002"
+            - name: NOTIFICATION_SERVICE_URL
+              value: "http://notification-service:5006"
+            - name: PAYMENT_SERVICE_URL
+              value: "http://payment-service:5005"
+            - name: TELEMEDICINE_SERVICE_URL
+              value: "http://telemedicine-service:5007"

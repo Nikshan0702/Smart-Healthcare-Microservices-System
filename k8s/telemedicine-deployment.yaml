@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: telemedicine-service
+  labels:
+    app: telemedicine-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: telemedicine-service
+  template:
+    metadata:
+      labels:
+        app: telemedicine-service
+    spec:
+      containers:
+        - name: telemedicine-service
+          image: smart-healthcare-telemedicine-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5007
+          env:
+            - name: PORT
+              value: "5007"
+            - name: MONGO_URI
+              value: "mongodb://mongo:27017/healthcare_telemedicine"
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: JWT_SECRET
+            - name: JITSI_BASE_URL
+              value: "https://meet.jit.si"

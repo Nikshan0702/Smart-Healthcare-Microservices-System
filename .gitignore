@@ -53,10 +53,6 @@ DOCTOR_SETUP.md
 README 2.md
 SERVICE_TEST_RESULTS.md
 
-# Temp: ignore other k8s manifests; keep payment ones visible
-/k8s/*
-
-
 # Temp: ignore root packages and readme while focusing on payment service
 /package.json
 /package-lock.json
