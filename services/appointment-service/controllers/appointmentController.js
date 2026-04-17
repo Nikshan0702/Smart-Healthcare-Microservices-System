@@ -103,6 +103,13 @@ const notifyByEmail = async ({ to, subject, message }) => {
   }
 };
 
+const queueEmailNotification = (payload) => {
+  // Keep notification delivery out of the request critical path.
+  notifyByEmail(payload).catch((error) => {
+    console.error("Queued notification failed:", error.message);
+  });
+};
+
 const createTelemedicineSession = async ({ appointment, authHeader }) => {
   try {
     const response = await fetch(`${getTelemedicineServiceUrl()}/telemedicine/sessions`, {
@@ -432,13 +439,13 @@ const bookAppointment = async (req, res) => {
       status: "PENDING"
     });
 
-    await notifyByEmail({
+    queueEmailNotification({
       to: req.user.email,
       subject: "Appointment booked",
       message: `Your appointment request with Dr. ${doctor.name} is now pending.`
     });
 
-    await notifyByEmail({
+    queueEmailNotification({
       to: doctor.email,
       subject: "New appointment request",
       message: `${req.user.name} requested an appointment on ${appointment.timeSlot}, ${appointment.appointmentDate.toDateString()}.`
@@ -637,7 +644,7 @@ const cancelMyAppointment = async (req, res) => {
     appointment.status = "CANCELLED";
     await appointment.save();
 
-    await notifyByEmail({
+    queueEmailNotification({
       to: appointment.doctorEmail,
       subject: "Appointment cancelled",
       message: `${appointment.patientName} cancelled the appointment on ${appointment.timeSlot}, ${appointment.appointmentDate.toDateString()}.`
@@ -732,7 +739,7 @@ const acceptAppointment = async (req, res) => {
     appointment.meetingLink = meetingLink;
     await appointment.save();
 
-    await notifyByEmail({
+    queueEmailNotification({
       to: appointment.patientEmail,
       subject: "Appointment accepted",
       message: `Your appointment with Dr. ${appointment.doctorName} was accepted. Please complete the payment to unlock the consultation link.`
@@ -779,7 +786,7 @@ const rejectAppointment = async (req, res) => {
     appointment.rejectionReason = rejectionReason;
     await appointment.save();
 
-    await notifyByEmail({
+    queueEmailNotification({
       to: appointment.patientEmail,
       subject: "Appointment rejected",
       message: `Your appointment with Dr. ${appointment.doctorName} was rejected. Reason: ${rejectionReason}`
@@ -816,7 +823,7 @@ const completeAppointment = async (req, res) => {
     appointment.status = "COMPLETED";
     await appointment.save();
 
-    await notifyByEmail({
+    queueEmailNotification({
       to: appointment.patientEmail,
       subject: "Consultation completed",
       message: `Your consultation with Dr. ${appointment.doctorName} has been marked as completed.`

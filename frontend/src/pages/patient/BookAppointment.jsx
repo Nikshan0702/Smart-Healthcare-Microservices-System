@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import PageHeader from "../../components/PageHeader";
 import { appointmentService } from "../../services/appointmentService";
 import { doctorService } from "../../services/doctorService";
@@ -31,6 +31,7 @@ const formatAppointmentDate = (value) => {
 };
 
 function BookAppointment() {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const preselectedDoctorId = searchParams.get("doctorId") || "";
   const minBookingDate = useMemo(() => getTodayLocalDate(), []);
@@ -62,7 +63,8 @@ function BookAppointment() {
       try {
         const data = await doctorService.getDoctors();
         setDoctors(Array.isArray(data) ? data : []);
-      } catch {
+      } catch (err) {
+        console.error("Error loading doctors:", err);
         setDoctors([]);
       } finally {
         setLoadingDoctors(false);
@@ -92,6 +94,7 @@ function BookAppointment() {
         timeSlot: slots.includes(prev.timeSlot) ? prev.timeSlot : slots[0] || ""
       }));
     } catch (err) {
+      console.error("Error loading slots:", err);
       setAvailableSlots([]);
       setForm((prev) => ({ ...prev, timeSlot: "" }));
       setSlotError(err.response?.data?.message || "Failed to load available slots.");
@@ -106,12 +109,11 @@ function BookAppointment() {
 
     setIsAutoSelecting(true);
     let currentDate = getTodayLocalDate();
-    let maxAttempts = 30; // Prevent infinite loop, check up to 30 days ahead
+    let maxAttempts = 30;
     let attempts = 0;
     let foundSlot = false;
 
     while (attempts < maxAttempts && !foundSlot) {
-      // Move to next day
       currentDate = getNextAvailableDate(currentDate);
       
       try {
@@ -123,11 +125,10 @@ function BookAppointment() {
         const slots = Array.isArray(data.availableSlots) ? data.availableSlots : [];
         
         if (slots.length > 0) {
-          // Found available slots
           setForm((prev) => ({
             ...prev,
             appointmentDate: currentDate,
-            timeSlot: slots[0] // Select the first available slot
+            timeSlot: slots[0]
           }));
           setAvailableSlots(slots);
           setSlotError("");
@@ -135,7 +136,6 @@ function BookAppointment() {
           break;
         }
       } catch (err) {
-        // If error occurs, continue to next date
         console.log(`No slots found for ${currentDate}`);
       }
       
@@ -143,7 +143,6 @@ function BookAppointment() {
     }
 
     if (!foundSlot) {
-      // No slots found in the next 30 days
       setSlotError("No available slots found for this doctor in the coming weeks. Please try a different doctor or date.");
       setAvailableSlots([]);
       setForm((prev) => ({ ...prev, timeSlot: "" }));
@@ -152,19 +151,16 @@ function BookAppointment() {
     setIsAutoSelecting(false);
   }, []);
 
-  // Trigger auto-selection when doctor changes
   useEffect(() => {
     if (form.doctorProfileId) {
       autoSelectNextAvailableSlot(form.doctorProfileId);
     } else {
-      // Reset date and time if no doctor selected
       setForm((prev) => ({ ...prev, appointmentDate: "", timeSlot: "" }));
       setAvailableSlots([]);
       setSlotError("");
     }
   }, [form.doctorProfileId, autoSelectNextAvailableSlot]);
 
-  // Load slots when date changes (manual date selection)
   useEffect(() => {
     if (form.doctorProfileId && form.appointmentDate && !isAutoSelecting) {
       loadAvailableSlots(form.doctorProfileId, form.appointmentDate);
@@ -220,13 +216,54 @@ function BookAppointment() {
     setSaving(true);
 
     try {
-      const data = await appointmentService.bookAppointment({ ...form, reason });
-      setSuccess(data.message || "Appointment booked successfully.");
-      setForm((prev) => ({ ...prev, reason: "" }));
-      // Reload slots for the same date after booking
-      await loadAvailableSlots(form.doctorProfileId, form.appointmentDate);
+      const appointmentData = {
+        doctorProfileId: form.doctorProfileId,
+        appointmentDate: form.appointmentDate,
+        timeSlot: form.timeSlot,
+        reason: reason
+      };
+      
+      console.log("Booking appointment with data:", appointmentData);
+      
+      const response = await appointmentService.bookAppointment(appointmentData);
+      
+      console.log("Booking response:", response);
+      
+      // Check if response indicates success
+      if (response && (response.success || response.message || response.data)) {
+        const successMessage = response.message || response.data?.message || "Appointment booked successfully!";
+        setSuccess(successMessage);
+        
+        // Reset reason field
+        setForm((prev) => ({ ...prev, reason: "" }));
+        
+        // Reload slots for the same date after booking
+        await loadAvailableSlots(form.doctorProfileId, form.appointmentDate);
+        
+        // Optional: Redirect to appointments page after 2 seconds
+        setTimeout(() => {
+          navigate("/patient/appointments");
+        }, 2000);
+      } else {
+        throw new Error("Invalid response from server");
+      }
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to book appointment.");
+      console.error("Booking error details:", err);
+      
+      // Extract error message from various possible sources
+      let errorMessage = "Failed to book appointment. ";
+      
+      if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.response?.data?.error) {
+        errorMessage = err.response.data.error;
+      } else if (err.message) {
+        errorMessage = err.message;
+      } else {
+        errorMessage = "An unexpected error occurred. Please try again.";
+      }
+      
+      setError(errorMessage);
     } finally {
       setSaving(false);
     }

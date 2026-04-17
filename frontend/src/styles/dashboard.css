@@ -1763,3 +1763,168 @@
   gap: 1.5rem;
   margin-top: 2rem;
 }
+
+/* Time Slots Section */
+.availability-slots-section {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-light, #e2e8f0);
+}
+
+.availability-slots-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.availability-field-label {
+  font-weight: 600;
+  color: var(--text-dark, #1e293b);
+  font-size: 0.875rem;
+}
+
+.add-slot-btn {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+.time-slots-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.time-slot-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  background: var(--bg-light, #f8fafc);
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.time-slot-item:hover {
+  background: var(--bg-hover, #f1f5f9);
+}
+
+.time-slot-input {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border-light, #e2e8f0);
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  max-width: 120px;
+}
+
+.time-slot-input:focus {
+  outline: none;
+  border-color: var(--primary-color, #3b82f6);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.time-slot-preview {
+  font-size: 0.875rem;
+  color: var(--text-muted, #64748b);
+  font-family: monospace;
+  min-width: 80px;
+}
+
+.remove-slot-btn {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  color: var(--danger-color, #ef4444);
+  border-color: var(--danger-color, #ef4444);
+}
+
+.remove-slot-btn:hover {
+  background: var(--danger-color, #ef4444);
+  color: white;
+}
+
+.no-slots-hint {
+  color: var(--text-muted, #64748b);
+  font-size: 0.875rem;
+  text-align: center;
+  padding: 1rem;
+  background: var(--bg-light, #f8fafc);
+  border-radius: 0.5rem;
+  margin: 0.5rem 0;
+}
+
+/* Upcoming slots preview */
+.upcoming-date-group {
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-light, #e2e8f0);
+}
+
+.upcoming-date-group:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.upcoming-date-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.slot-count-badge {
+  background: var(--primary-light, #dbeafe);
+  color: var(--primary-color, #3b82f6);
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.doctor-slot-preview-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.doctor-slot-preview-list li {
+  padding: 0.25rem 0;
+  font-size: 0.875rem;
+  color: var(--text-muted, #64748b);
+}
+
+.slot-time {
+  font-family: monospace;
+}
+
+.more-slots {
+  color: var(--primary-color, #3b82f6);
+  font-size: 0.75rem;
+  font-style: italic;
+  padding-top: 0.25rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .time-slot-item {
+    flex-wrap: wrap;
+  }
+
+  .time-slot-input {
+    max-width: 100%;
+    flex: auto;
+  }
+
+  .time-slot-preview {
+    width: 100%;
+    order: 1;
+  }
+
+  .remove-slot-btn {
+    order: 2;
+  }
+}

@@ -5,7 +5,7 @@ import PageHeader from "../../components/PageHeader";
 import { doctorService } from "../../services/doctorService";
 import { isValidDateKey, normalizeString } from "../../utils/validators";
 
-const emptyRow = { date: "", slots: "" };
+const emptyRow = { date: "", slots: [] };
 
 const toInputDate = (value) => {
   if (!value) return "";
@@ -23,12 +23,6 @@ const getTodayDate = () => {
   return localDate.toISOString().slice(0, 10);
 };
 
-const getSlotCount = (slotsText) =>
-  slotsText
-    .split(",")
-    .map((slot) => slot.trim())
-    .filter(Boolean).length;
-
 const formatDateLabel = (value) => {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
@@ -39,6 +33,21 @@ const formatDateLabel = (value) => {
     month: "short",
     day: "numeric"
   });
+};
+
+// Convert 24-hour format (HH:MM) to 12-hour format for display
+const formatTimeForDisplay = (time24) => {
+  if (!time24) return "";
+  const [hours, minutes] = time24.split(":");
+  const hour = parseInt(hours);
+  const ampm = hour >= 12 ? "PM" : "AM";
+  const hour12 = hour % 12 || 12;
+  return `${hour12}:${minutes} ${ampm}`;
+};
+
+// Keep time in 24-hour format for storage (already in HH:MM from time input)
+const formatTimeForStorage = (time24) => {
+  return time24; // Time input already returns HH:MM format
 };
 
 function DoctorAvailability() {
@@ -73,7 +82,7 @@ function DoctorAvailability() {
 
             return {
               date,
-              slots: (item.slots || []).join(", ")
+              slots: Array.isArray(item.slots) ? [...item.slots] : []
             };
           })
           .filter(Boolean);
@@ -91,12 +100,44 @@ function DoctorAvailability() {
     loadProfile();
   }, []);
 
-  const updateRow = (index, field, value) => {
-    setRows((prev) => prev.map((row, rowIndex) => (rowIndex === index ? { ...row, [field]: value } : row)));
+  const updateRowDate = (index, date) => {
+    setRows((prev) => prev.map((row, rowIndex) => 
+      rowIndex === index ? { ...row, date } : row
+    ));
+  };
+
+  const addSlot = (rowIndex) => {
+    setRows((prev) => prev.map((row, index) => {
+      if (index === rowIndex) {
+        return { ...row, slots: [...row.slots, ""] };
+      }
+      return row;
+    }));
+  };
+
+  const updateSlot = (rowIndex, slotIndex, value) => {
+    setRows((prev) => prev.map((row, rIdx) => {
+      if (rIdx === rowIndex) {
+        const updatedSlots = [...row.slots];
+        updatedSlots[slotIndex] = value;
+        return { ...row, slots: updatedSlots };
+      }
+      return row;
+    }));
+  };
+
+  const removeSlot = (rowIndex, slotIndex) => {
+    setRows((prev) => prev.map((row, rIdx) => {
+      if (rIdx === rowIndex) {
+        const updatedSlots = row.slots.filter((_, sIdx) => sIdx !== slotIndex);
+        return { ...row, slots: updatedSlots };
+      }
+      return row;
+    }));
   };
 
   const addRow = () => {
-    setRows((prev) => [...prev, { ...emptyRow }]);
+    setRows((prev) => [...prev, { date: "", slots: [] }]);
   };
 
   const removeRow = (index) => {
@@ -116,10 +157,10 @@ function DoctorAvailability() {
       .map((row) => ({
         date: normalizeString(row.date),
         slots: row.slots
-          .split(",")
-          .map((slot) => slot.trim())
-          .filter(Boolean)
-      }));
+          .filter(slot => slot && slot.trim())
+          .map(slot => slot.trim()) // Keep as is (HH:MM format from time input)
+      }))
+      .filter(entry => entry.slots.length > 0);
 
     if (availability.length === 0) {
       setError("Add at least one dated slot entry.");
@@ -131,20 +172,34 @@ function DoctorAvailability() {
       return;
     }
 
-    if (availability.some((entry) => entry.slots.length === 0)) {
-      setError("Each selected date must include at least one slot.");
-      return;
-    }
-
-    const hasInvalidSlotText = availability.some((entry) =>
+    // Validate time slots (now expecting HH:MM format)
+    const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+    const hasInvalidSlot = availability.some((entry) =>
       entry.slots.some((slot) => {
-        const normalizedSlot = normalizeString(slot);
-        return normalizedSlot.length < 2 || normalizedSlot.length > 40;
+        if (!slot) return true;
+        if (!timeRegex.test(slot)) return true;
+        const [hours, minutes] = slot.split(":");
+        const hour = parseInt(hours);
+        const minute = parseInt(minutes);
+        if (hour < 0 || hour > 23) return true;
+        if (minute < 0 || minute > 59) return true;
+        return false;
       })
     );
 
-    if (hasInvalidSlotText) {
-      setError("Each slot must be between 2 and 40 characters.");
+    if (hasInvalidSlot) {
+      setError("Each slot must be a valid time in HH:MM format (e.g., 09:00, 14:30).");
+      return;
+    }
+
+    // Check for duplicate slots within the same date
+    const hasDuplicateSlots = availability.some((entry) => {
+      const uniqueSlots = new Set(entry.slots);
+      return uniqueSlots.size !== entry.slots.length;
+    });
+
+    if (hasDuplicateSlots) {
+      setError("Duplicate time slots found for the same date. Please remove duplicates.");
       return;
     }
 
@@ -162,11 +217,15 @@ function DoctorAvailability() {
   };
 
   const configuredDateCount = rows.filter((row) => row.date.trim()).length;
-  const configuredSlotCount = rows.reduce((total, row) => total + getSlotCount(row.slots), 0);
+  const configuredSlotCount = rows.reduce((total, row) => total + row.slots.filter(slot => slot && slot.trim()).length, 0);
 
   const upcomingEntries = rows
-    .filter((row) => row.date.trim())
-    .map((row) => ({ date: row.date.trim(), slotCount: getSlotCount(row.slots) }))
+    .filter((row) => row.date.trim() && row.slots.length > 0)
+    .map((row) => ({ 
+      date: row.date.trim(), 
+      slotCount: row.slots.filter(slot => slot && slot.trim()).length,
+      slots: row.slots.filter(slot => slot && slot.trim())
+    }))
     .sort((a, b) => a.date.localeCompare(b.date))
     .slice(0, 5);
 
@@ -238,23 +297,57 @@ function DoctorAvailability() {
                         className="availability-input"
                         min={minDate}
                         value={row.date}
-                        onChange={(event) => updateRow(index, "date", event.target.value)}
-                      />
-                    </label>
-
-                    <label className="availability-field">
-                      <span>Time Slots</span>
-                      <input
-                        type="text"
-                        className="availability-input"
-                        placeholder="09:00 AM, 10:30 AM, 02:00 PM"
-                        value={row.slots}
-                        onChange={(event) => updateRow(index, "slots", event.target.value)}
+                        onChange={(event) => updateRowDate(index, event.target.value)}
                       />
                     </label>
                   </div>
 
-                  <p className="availability-row-note">Use comma-separated slots for the selected date.</p>
+                  <div className="availability-slots-section">
+                    <div className="availability-slots-header">
+                      <label className="availability-field-label">Time Slots</label>
+                      <button
+                        type="button"
+                        className="btn btn-small btn-outline add-slot-btn"
+                        onClick={() => addSlot(index)}
+                      >
+                        + Add Time Slot
+                      </button>
+                    </div>
+
+                    <div className="time-slots-list">
+                      {row.slots.length === 0 && (
+                        <p className="no-slots-hint">No time slots added. Click "Add Time Slot" to add appointment times.</p>
+                      )}
+                      
+                      {row.slots.map((slot, slotIndex) => (
+                        <div key={slotIndex} className="time-slot-item">
+                          <input
+                            type="time"
+                            className="time-slot-input"
+                            value={slot}
+                            onChange={(e) => updateSlot(index, slotIndex, e.target.value)}
+                            step="60"
+                          />
+                          <span className="time-slot-preview">
+                            {slot && formatTimeForDisplay(slot)}
+                          </span>
+                          <button
+                            type="button"
+                            className="btn btn-small btn-ghost remove-slot-btn"
+                            onClick={() => removeSlot(index, slotIndex)}
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+
+                    {row.slots.length > 0 && (
+                      <p className="availability-row-note">
+                        {row.slots.filter(s => s && s.trim()).length} time slot{row.slots.filter(s => s && s.trim()).length === 1 ? "" : "s"} configured for this date
+                      </p>
+                    )}
+                  </div>
                 </article>
               ))}
             </div>
@@ -275,25 +368,37 @@ function DoctorAvailability() {
               <ul className="profile-tip-list">
                 <li>Only the listed dated slots are shown on doctor profile and booking pages.</li>
                 <li>After a patient books a slot, that slot is hidden until the booking is cancelled.</li>
-                <li>Keep slot times in a consistent format so patients see clean options.</li>
+                <li>Use the time picker to add any number of time slots for each date.</li>
+                <li>Slots are displayed in 24-hour format for input but shown as 12-hour format for preview.</li>
+                <li>Duplicate time slots on the same date will be rejected.</li>
               </ul>
             </div>
 
             <div className="panel">
-              <h3>Upcoming Dates</h3>
+              <h3>Upcoming Slots Preview</h3>
               {upcomingEntries.length === 0 ? (
                 <p className="doctor-muted-note">No upcoming availability entries.</p>
               ) : (
-                <ul className="doctor-slot-preview-list">
-                  {upcomingEntries.map((entry, index) => (
-                    <li key={`${entry.date}-${index}`}>
-                      <span>{formatDateLabel(entry.date)}</span>
-                      <strong>
-                        {entry.slotCount} slot{entry.slotCount === 1 ? "" : "s"}
-                      </strong>
-                    </li>
+                <div>
+                  {upcomingEntries.map((entry, idx) => (
+                    <div key={`${entry.date}-${idx}`} className="upcoming-date-group">
+                      <div className="upcoming-date-header">
+                        <strong>{formatDateLabel(entry.date)}</strong>
+                        <span className="slot-count-badge">{entry.slotCount} slots</span>
+                      </div>
+                      <ul className="doctor-slot-preview-list">
+                        {entry.slots.slice(0, 3).map((slot, slotIdx) => (
+                          <li key={slotIdx}>
+                            <span className="slot-time">{formatTimeForDisplay(slot)}</span>
+                          </li>
+                        ))}
+                        {entry.slots.length > 3 && (
+                          <li className="more-slots">+{entry.slots.length - 3} more</li>
+                        )}
+                      </ul>
+                    </div>
                   ))}
-                </ul>
+                </div>
               )}
             </div>
           </aside>

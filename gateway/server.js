@@ -11,6 +11,8 @@ const app = express();
 app.use(cors());
 app.use(morgan("dev"));
 
+const proxyTimeoutMs = Number(process.env.GATEWAY_PROXY_TIMEOUT_MS || 30000);
+
 const stripTrailingSlash = (url) => url.replace(/\/+$/, "");
 const authTarget = `${stripTrailingSlash(process.env.AUTH_SERVICE_URL || "http://auth-service:5001")}/auth`;
 const doctorTarget = `${stripTrailingSlash(process.env.DOCTOR_SERVICE_URL || "http://doctor-service:5002")}/doctors`;
@@ -41,7 +43,8 @@ app.use(
   createProxyMiddleware({
     target: authTarget,
     changeOrigin: true,
-    proxyTimeout: 5000,
+    proxyTimeout: proxyTimeoutMs,
+    timeout: proxyTimeoutMs,
     onError: (err, req, res) => {
       res.status(502).json({
         message: "Auth service is unavailable",
@@ -56,7 +59,8 @@ app.use(
   createProxyMiddleware({
     target: doctorTarget,
     changeOrigin: true,
-    proxyTimeout: 5000,
+    proxyTimeout: proxyTimeoutMs,
+    timeout: proxyTimeoutMs,
     onError: (err, req, res) => {
       res.status(502).json({
         message: "Doctor service is unavailable",
@@ -71,7 +75,8 @@ app.use(
   createProxyMiddleware({
     target: appointmentTarget,
     changeOrigin: true,
-    proxyTimeout: 5000,
+    proxyTimeout: proxyTimeoutMs,
+    timeout: proxyTimeoutMs,
     onError: (err, req, res) => {
       res.status(502).json({
         message: "Appointment service is unavailable",
@@ -86,7 +91,8 @@ app.use(
   createProxyMiddleware({
     target: telemedicineTarget,
     changeOrigin: true,
-    proxyTimeout: 5000,
+    proxyTimeout: proxyTimeoutMs,
+    timeout: proxyTimeoutMs,
     onError: (err, req, res) => {
       res.status(502).json({
         message: "Telemedicine service is unavailable",
@@ -101,7 +107,8 @@ app.use(
   createProxyMiddleware({
     target: patientTarget,
     changeOrigin: true,
-    proxyTimeout: 5000,
+    proxyTimeout: proxyTimeoutMs,
+    timeout: proxyTimeoutMs,
     onError: (err, req, res) => {
       res.status(502).json({
         message: "Patient service is unavailable",
@@ -116,7 +123,8 @@ app.use(
   createProxyMiddleware({
     target: paymentTarget,
     changeOrigin: true,
-    proxyTimeout: 5000,
+    proxyTimeout: proxyTimeoutMs,
+    timeout: proxyTimeoutMs,
     onError: (err, req, res) => {
       res.status(502).json({
         message: "Payment service is unavailable",
@@ -131,7 +139,8 @@ app.use(
   createProxyMiddleware({
     target: notificationTarget,
     changeOrigin: true,
-    proxyTimeout: 5000,
+    proxyTimeout: proxyTimeoutMs,
+    timeout: proxyTimeoutMs,
     onError: (err, req, res) => {
       res.status(502).json({
         message: "Notification service is unavailable",
